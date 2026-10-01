@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>bundle builder test</title></head>
+<body>
+<pre id="out">pending</pre>
+<script src="../../assets/odoo-app-bundle.js"></script>
+<script>
+(async function () {
+  try {
+    var params = new URLSearchParams(location.search);
+    var bytes = await OdooAppBundle.buildBundle(function (u) { return fetch(u, { cache: 'no-store' }); }, location.origin + '/', { odooUrl: params.get('odoo') || 'https://acme.odoo.com', company: params.get('company') || 'Acme Corp' });
+    var bin = '';
+    for (var i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    document.getElementById('out').textContent = 'OK:' + btoa(bin);
+  } catch (e) {
+    document.getElementById('out').textContent = 'ERR:' + ((e && e.stack) || e);
+  }
+})();
+</script>
+</body>
+</html>

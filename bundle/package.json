@@ -1,0 +1,8 @@
+{
+  "name": "odoo-app-mcp",
+  "version": "1.0.0",
+  "description": "Connect Claude to your Odoo: search, read and update customers, sales, invoices, products, stock, projects and more.",
+  "main": "server/index.js",
+  "license": "MIT",
+  "private": true
+}

@@ -3,7 +3,7 @@
 //   node scripts/build-mcpb.mjs
 //
 // Steps: stage extension/manifest.json (tool list and version filled in from the server and
-// package.json) + server/index.js + icon.png + package.json into build/mcpb/, then zip them into
+// package.json) + server/index.js + icon.png + package.json into bundle/, then zip them into
 // odoo.mcpb with a small built-in zip writer (an .mcpb is a plain zip with manifest.json at its root).
 // No dependencies are needed. If the official @anthropic-ai/mcpb CLI is available it is used to
 // validate the manifest and to print the bundle info afterwards.
@@ -16,7 +16,9 @@ import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const stage = path.join(root, 'build', 'mcpb');
+// bundle/ holds the exact, unzipped content of odoo.mcpb. It is committed and served by GitHub Pages so the
+// landing page can build a personalised copy of the extension in the browser (assets/odoo-app-bundle.js).
+const stage = path.join(root, 'bundle');
 const out = path.join(root, 'odoo.mcpb');
 
 // ---------------------------------------------------------------------------
@@ -136,7 +138,7 @@ fs.writeFileSync(path.join(root, 'icon.png'), icon);
 
 const files = ['manifest.json', 'package.json', 'icon.png', 'server/index.js'].map((name) => ({ name, data: fs.readFileSync(path.join(stage, name)) }));
 fs.writeFileSync(out, zip(files));
-console.log(`built ${path.relative(root, out)} (${fs.statSync(out).size} bytes) with ${files.length} files; icon.png updated`);
+console.log(`built ${path.relative(root, out)} (${fs.statSync(out).size} bytes) from bundle/ (${files.length} files); icon.png updated`);
 
 // Optional verification with the official CLI (needs network for npx the first time).
 if (process.env.MCPB_VERIFY !== '0') {

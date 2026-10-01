@@ -2,14 +2,17 @@
 
 **Share this link with your team: https://raiybo.github.io/Odoo-App/**
 
-Open it, pick Mac or Windows, and follow three short steps. Two minutes later Claude (Claude Desktop and/or
-Claude Code) is connected to your company's Odoo and you can ask things like *"which invoices are overdue?"*,
-*"show me the open quotations for Azure Interior"* or *"create a lead for Acme Corp"*.
+It is a complete guide from zero: sign in to Claude (or create an account), install the Claude Desktop app
+with direct download buttons for Mac or Windows, add the Odoo extension, enter the Odoo login, verify.
+Ten minutes, no technical knowledge needed. The only things a person types are their **Odoo email** and
+**Odoo password** (or an API key); with a team link even the Odoo address is pre-filled.
 
-The only things a person has to type are their **Odoo address**, their **Odoo email** and their **Odoo password**
-(or an API key). Everything else is automatic, including picking the right way to talk to their Odoo version.
+**Team link:** open the page, scroll to *For team admins*, enter your company's Odoo address and click
+*Create team link*. Teammates who open that link see the address pre-filled everywhere, including inside the
+extension they download (the page builds a personalised `odoo.mcpb` in the browser). Example:
+`https://raiybo.github.io/Odoo-App/?odoo=https%3A%2F%2Fmycompany.odoo.com&company=My%20Company`
 
-## Two ways to install
+## Two ways to install the connector
 
 | | Who it is for | What happens |
 |---|---|---|
@@ -65,29 +68,36 @@ It also finds the database name by itself (server list, login page, or address),
 explanation ("your account uses two-factor authentication, create an API key like this...").
 
 Two-factor-authentication and Google/Microsoft single-sign-on accounts need an Odoo **API key** instead of the
-password (Odoo: your name -> Preferences -> Account Security -> New API Key). The connector tells the user exactly that.
+password (Odoo: your name -> Preferences -> Account Security -> New API Key). The page and the connector both explain that.
 
 ## Repository layout
 
 ```
-index.html               the landing page served at https://raiybo.github.io/Odoo-App/
-odoo.mcpb                the one-click Claude Desktop extension (built from extension/ + server/)
-install.sh / install.ps1 the automatic installers for Mac/Linux and Windows
-server/index.js          the MCP server: Odoo client + tools, zero dependencies, Node 18+
-server/setup.js          helper for the installers: saves config, edits Claude's config files
-extension/manifest.json  the extension manifest (MCPB 0.3)
-scripts/build-mcpb.mjs   builds odoo.mcpb and icon.png (no dependencies)
-tests/                   offline end-to-end tests (fake Odoo in several versions/shapes) and a live demo test
+index.html                 the guide, served at https://raiybo.github.io/Odoo-App/
+assets/odoo-app-bundle.js  builds a personalised odoo.mcpb in the browser (team links)
+odoo.mcpb                  the one-click Claude Desktop extension (zip of bundle/)
+bundle/                    the unzipped extension: manifest.json, server/index.js, icon.png, package.json (built, committed, served)
+install.sh / install.ps1   the automatic installers for Mac/Linux and Windows
+server/index.js            the MCP server: Odoo client + tools, zero dependencies, Node 18+
+server/setup.js            helper for the installers: saves config, edits Claude's config files
+extension/manifest.json    the extension manifest template (MCPB 0.3); the build fills in version and tools
+scripts/build-mcpb.mjs     builds bundle/, odoo.mcpb and icon.png (no dependencies)
+tests/                     offline end-to-end tests (fake Odoo), installer smoke tests, browser tests, live demo test
 ```
 
 ## Development
 
 ```bash
-npm test            # offline end-to-end tests against the built-in fake Odoo (several versions and failure modes)
-npm run test:live   # smoke test against Odoo's public demo server (needs internet)
-npm run build       # rebuild odoo.mcpb and icon.png
+npm test             # offline end-to-end tests against the built-in fake Odoo + the in-browser bundle builder
+npm run test:browser # landing page and bundle builder in a real headless browser (Edge/Chrome); ONLINE=1 also checks Anthropic's download links
+npm run test:live    # smoke test against Odoo's public demo server (needs internet)
+npm run build        # rebuild bundle/, odoo.mcpb and icon.png
 node server/index.js --test   # check a connection using ODOO_URL / ODOO_LOGIN / ODOO_PASSWORD env vars
 ```
+
+Installer smoke tests (run the real installer unattended against the fake Odoo in an isolated HOME):
+`bash tests/installer-smoke.sh [--download-node]` and `powershell -File tests\installer-smoke.ps1 [-DownloadNode]`.
+GitHub Actions runs all of this on Linux, macOS and Windows on every push.
 
 Configuration is read from environment variables, falling back to a JSON file
 (`~/.odoo-claude/config.json` on Mac/Linux, `%LOCALAPPDATA%\OdooClaude\config.json` on Windows, or `ODOO_CONFIG_FILE`):
@@ -95,12 +105,15 @@ Configuration is read from environment variables, falling back to a JSON file
 `ODOO_INSECURE_SSL` (self-signed certificates), `ODOO_TIMEOUT_MS`, `ODOO_DEBUG=1` for verbose logs on stderr.
 
 Installer knobs (environment variables): `ODOO_URL`, `ODOO_LOGIN`, `ODOO_PASSWORD`, `ODOO_DB`, `ODOO_READ_ONLY`
-make the install unattended; `ODOO_CLAUDE_NO_LAUNCH=1` never opens apps or web pages; `ODOO_CLAUDE_HOME` changes the
-install folder; `ODOO_CLAUDE_NODE` points at an existing Node.js binary; `ODOO_CLAUDE_BASE_URL` changes where files
-are downloaded from (for forks and mirrors).
+make the install unattended (`ODOO_URL` alone pre-fills the question); `ODOO_CLAUDE_NO_LAUNCH=1` never opens apps or
+web pages; `ODOO_CLAUDE_HOME` changes the install folder; `ODOO_CLAUDE_NODE` points at an existing Node.js binary;
+`ODOO_CLAUDE_BASE_URL` changes where files are downloaded from (for forks and mirrors).
 
 Uninstall: `--uninstall` (Mac) or `$env:ODOO_CLAUDE_UNINSTALL='1'` (Windows) before running the install command
 again; or Settings -> Extensions -> Odoo -> Uninstall for the extension.
+
+Releasing a new version: bump `version` in `package.json`, `npm run build`, commit, push, then
+`gh release create vX.Y.Z odoo.mcpb --notes-file notes.md`.
 
 ## Security notes
 
@@ -109,6 +122,8 @@ again; or Settings -> Extensions -> Odoo -> Uninstall for the extension.
   file readable only by the user.
 - The connector has no third-party dependencies; `server/index.js` is the whole program and can be audited in minutes.
 - Prefer API keys over passwords where possible, and enable Read-only mode for people who only need to look things up.
+- The page links to Anthropic's own "latest installer" endpoints for Claude Desktop
+  (`https://claude.ai/api/desktop/<platform>/.../latest/redirect`), the same ones used by claude.com/download.
 
 ## License
 

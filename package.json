@@ -13,7 +13,8 @@
     "node": ">=18"
   },
   "scripts": {
-    "test": "node tests/run.mjs",
+    "test": "node tests/run.mjs && node tests/bundle-builder.test.mjs",
+    "test:browser": "node tests/browser-smoke.mjs",
     "test:live": "node tests/live-demo.mjs",
     "build": "node scripts/build-mcpb.mjs",
     "check": "node server/index.js --test"

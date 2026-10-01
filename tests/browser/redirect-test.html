@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>download link test</title></head>
+<body>
+<pre id="out">pending</pre>
+<script>
+// Checks, from inside a real browser, that Anthropic's "latest installer" links answer with a redirect
+// (they refuse non-browser clients, so this cannot be tested with curl). A cross-origin fetch with
+// redirect:"manual" yields an opaque response of type "opaqueredirect" exactly when the server redirected.
+(async function () {
+  var urls = [
+    'https://claude.ai/api/desktop/darwin/universal/dmg/latest/redirect',
+    'https://claude.ai/api/desktop/win32/x64/setup/latest/redirect',
+    'https://claude.ai/api/desktop/win32/arm64/setup/latest/redirect'
+  ];
+  var lines = [];
+  for (var i = 0; i < urls.length; i++) {
+    try {
+      var r = await fetch(urls[i], { mode: 'no-cors', redirect: 'manual', cache: 'no-store' });
+      lines.push(r.type + ' ' + urls[i]);
+    } catch (e) { lines.push('error ' + urls[i] + ' ' + e); }
+  }
+  document.getElementById('out').textContent = 'DONE\n' + lines.join('\n');
+})();
+</script>
+</body>
+</html>

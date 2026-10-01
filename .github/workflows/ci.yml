@@ -29,6 +29,13 @@ jobs:
         run: node scripts/build-mcpb.mjs
         env:
           MCPB_VERIFY: "0"
+      - name: In-browser extension builder (Node + official mcpb CLI check)
+        run: node tests/bundle-builder.test.mjs
+      - name: Landing page in a real headless browser
+        if: runner.os != 'macOS'
+        run: node tests/browser-smoke.mjs
+        env:
+          ONLINE: "1"
       - name: Check install.sh syntax
         if: runner.os != 'Windows'
         run: bash -n install.sh
