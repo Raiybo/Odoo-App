@@ -183,17 +183,24 @@ function Install-OdooApp {
     else { Write-Warn "Claude Code: $($r.Out)" }
 
     $running = Get-Process -Name 'Claude' -ErrorAction SilentlyContinue
-    $launcher = if ($detect.claudeDesktop.executable) { $detect.claudeDesktop.executable } elseif ($detect.claudeDesktop.shortcut) { $detect.claudeDesktop.shortcut } else { $null }
+    # How to start Claude Desktop: Start menu entry (covers the Microsoft Store / MSIX build and classic installs),
+    # otherwise the executable or shortcut found by setup.js.
+    $startApp = $null
+    try { $startApp = Get-StartApps -ErrorAction Stop | Where-Object { $_.Name -eq 'Claude' } | Select-Object -First 1 } catch { }
+    $launch = $null
+    if ($startApp) { $launch = { Start-Process 'explorer.exe' -ArgumentList "shell:AppsFolder\$($startApp.AppID)" } }
+    elseif ($detect.claudeDesktop.executable) { $exe = $detect.claudeDesktop.executable; $launch = { Start-Process $exe } }
+    elseif ($detect.claudeDesktop.shortcut) { $lnk = $detect.claudeDesktop.shortcut; $launch = { Start-Process $lnk } }
     if ($NoLaunch) {
         if ($running) { Write-Dim 'Restart Claude Desktop to load the Odoo connector.' }
     } elseif ($running) {
         Write-Host '  Restarting Claude Desktop so it picks up the Odoo connector...'
         $running | Stop-Process -Force -ErrorAction SilentlyContinue
         Start-Sleep -Seconds 2
-        if ($launcher) { try { Start-Process $launcher; Write-Ok 'Claude Desktop restarted' } catch { Write-Warn 'Please open Claude Desktop again yourself.' } }
+        if ($launch) { try { & $launch; Write-Ok 'Claude Desktop restarted' } catch { Write-Warn 'Please open Claude Desktop again yourself.' } }
         else { Write-Warn 'Please open Claude Desktop again yourself.' }
-    } elseif ($launcher) {
-        try { Start-Process $launcher } catch { }
+    } elseif ($launch) {
+        try { & $launch } catch { }
     }
 
     Write-Host ''

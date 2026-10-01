@@ -65,6 +65,37 @@ function claudeDesktopConfigFile() {
 
 function exists(p) { try { fs.accessSync(p); return true; } catch (_) { return false; } }
 
+// Windows: Claude Desktop is distributed as an MSIX package (Microsoft Store style). MSIX apps see a
+// virtualised AppData, so the app reads claude_desktop_config.json from
+//   %LOCALAPPDATA%\Packages\<PackageFamilyName>\LocalCache\Roaming\Claude\claude_desktop_config.json
+// (known family name: Claude_pzs8sxrjxfjjc) rather than from %APPDATA%\Claude. We write to every location.
+function windowsLocalAppData() {
+  return process.env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local');
+}
+function windowsMsixFamilies() {
+  if (process.platform !== 'win32') return [];
+  const families = new Set();
+  try {
+    for (const n of fs.readdirSync(path.join(windowsLocalAppData(), 'Packages'))) {
+      if (/^(Claude|Anthropic)[A-Za-z0-9.-]*_[a-z0-9]+$/i.test(n)) families.add(n);
+    }
+  } catch (_) { /* no Packages folder */ }
+  if (!process.env.ODOO_SETUP_SKIP_APPX) {
+    try {
+      const r = spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', "Get-AppxPackage | Where-Object { $_.Name -match '^(Claude|Anthropic)' } | Select-Object -ExpandProperty PackageFamilyName"], { encoding: 'utf8', timeout: 30000, windowsHide: true });
+      for (const line of (r.stdout || '').split(/\r?\n/)) { const n = line.trim(); if (/^[A-Za-z0-9.-]+_[a-z0-9]+$/.test(n)) families.add(n); }
+    } catch (_) { /* PowerShell not available */ }
+  }
+  return [...families];
+}
+function claudeDesktopConfigFiles() {
+  const files = [claudeDesktopConfigFile()];
+  for (const fam of windowsMsixFamilies()) {
+    files.push(path.join(windowsLocalAppData(), 'Packages', fam, 'LocalCache', 'Roaming', 'Claude', 'claude_desktop_config.json'));
+  }
+  return files;
+}
+
 function findInStartMenu() {
   if (process.platform !== 'win32') return null;
   const roots = [
@@ -96,15 +127,28 @@ function detectClaudeDesktop() {
   if (process.platform === 'darwin') {
     candidates.push('/Applications/Claude.app', path.join(home, 'Applications', 'Claude.app'));
   } else if (process.platform === 'win32') {
-    const local = process.env.LOCALAPPDATA || path.join(home, 'AppData', 'Local');
+    const local = windowsLocalAppData();
     candidates.push(path.join(local, 'AnthropicClaude', 'claude.exe'), path.join(local, 'Programs', 'Claude', 'Claude.exe'), path.join(local, 'Programs', 'claude-desktop', 'Claude.exe'));
+    try {
+      for (const n of fs.readdirSync(path.join(local, 'AnthropicClaude'))) if (/^app-/.test(n)) candidates.push(path.join(local, 'AnthropicClaude', n, 'claude.exe'));
+    } catch (_) { /* not a Squirrel install */ }
   } else {
     candidates.push('/usr/bin/claude-desktop', '/opt/Claude/claude');
   }
   const found = candidates.find(exists) || null;
   const shortcut = found ? null : findInStartMenu();
+  const msixPackages = windowsMsixFamilies();
+  const configFiles = claudeDesktopConfigFiles();
   const configDir = path.dirname(claudeDesktopConfigFile());
-  return { installed: !!(found || shortcut || exists(configDir)), executable: found, shortcut, configFile: claudeDesktopConfigFile(), configDirExists: exists(configDir) };
+  return {
+    installed: !!(found || shortcut || msixPackages.length || exists(configDir)),
+    executable: found,
+    shortcut,
+    msixPackages,
+    configFile: claudeDesktopConfigFile(),
+    configFiles,
+    configDirExists: exists(configDir),
+  };
 }
 
 function detectClaudeCode() {
@@ -157,13 +201,7 @@ function serverEntry(args) {
   return { command: args.node, args: [args.server], env: { ODOO_CONFIG_FILE: args.config } };
 }
 
-function cmdClaudeDesktop(args) {
-  const file = args.file || claudeDesktopConfigFile();
-  const det = detectClaudeDesktop();
-  if (!args.file && !det.installed && !args.force) {
-    say(`Claude Desktop is not installed (looked for the app and ${path.dirname(file)}).`);
-    process.exit(2);
-  }
+function updateClaudeDesktopConfig(file, args) {
   let data;
   try {
     data = readJson(file);
@@ -183,7 +221,18 @@ function cmdClaudeDesktop(args) {
   }
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, JSON.stringify(data, null, 2) + '\n', 'utf8');
-  say(file);
+}
+
+function cmdClaudeDesktop(args) {
+  const det = detectClaudeDesktop();
+  const files = args.file ? [args.file] : det.configFiles;
+  if (!args.file && !det.installed && !args.force) {
+    say(`Claude Desktop is not installed (looked for the app and ${path.dirname(files[0])}).`);
+    process.exit(2);
+  }
+  if (!args.remove) serverEntry(args); // validate arguments before touching any file
+  for (const file of files) updateClaudeDesktopConfig(file, args);
+  say(files.join('; '));
 }
 
 function runClaude(cli, cliArgs) {

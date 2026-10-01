@@ -15,7 +15,7 @@ if (Test-Path $testHome) { Remove-Item -Recurse -Force $testHome }
 New-Item -ItemType Directory -Force -Path (Join-Path $testHome 'appdata') | Out-Null
 
 $saved = @{}
-foreach ($k in 'APPDATA', 'PATH', 'ODOO_CLAUDE_HOME', 'ODOO_CLAUDE_BASE_URL', 'ODOO_CLAUDE_NO_LAUNCH', 'ODOO_URL', 'ODOO_LOGIN', 'ODOO_PASSWORD', 'ODOO_DB', 'MOCK_PORT', 'PORT', 'MOCK_DBS') { $saved[$k] = [Environment]::GetEnvironmentVariable($k) }
+foreach ($k in 'APPDATA', 'LOCALAPPDATA', 'PATH', 'ODOO_CLAUDE_HOME', 'ODOO_CLAUDE_BASE_URL', 'ODOO_CLAUDE_NO_LAUNCH', 'ODOO_SETUP_SKIP_APPX', 'ODOO_URL', 'ODOO_LOGIN', 'ODOO_PASSWORD', 'ODOO_DB', 'MOCK_PORT', 'PORT', 'MOCK_DBS') { $saved[$k] = [Environment]::GetEnvironmentVariable($k) }
 
 $env:MOCK_PORT = "$mockPort"; $env:MOCK_DBS = 'smoke-db'
 $mock = Start-Process node -ArgumentList 'tests\mock-odoo.mjs' -PassThru -NoNewWindow -RedirectStandardOutput (Join-Path $testHome 'mock.log')
@@ -25,6 +25,11 @@ Start-Sleep -Seconds 2
 $failed = $false
 try {
     $env:APPDATA = Join-Path $testHome 'appdata'
+    # Isolated LOCALAPPDATA with a fake Microsoft Store (MSIX) install of Claude Desktop, whose config lives in a virtualised AppData.
+    $env:LOCALAPPDATA = Join-Path $testHome 'localappdata'
+    $msixRoaming = Join-Path $env:LOCALAPPDATA 'Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming'
+    New-Item -ItemType Directory -Force -Path $msixRoaming | Out-Null
+    $env:ODOO_SETUP_SKIP_APPX = '1'   # do not query the real Get-AppxPackage on this machine
     $env:ODOO_CLAUDE_HOME = Join-Path $testHome 'app'
     $env:ODOO_CLAUDE_BASE_URL = "http://127.0.0.1:$repoPort"
     $env:ODOO_CLAUDE_NO_LAUNCH = '1'
@@ -52,6 +57,11 @@ try {
     if ($entry.env.ODOO_CONFIG_FILE -ne (Join-Path $env:ODOO_CLAUDE_HOME 'config.json')) { throw 'ODOO_CONFIG_FILE env is wrong' }
     Write-Host "  claude_desktop_config.json ok: $($entry.command) $($entry.args[0])"
     if ($DownloadNode -and -not ($entry.command -like "$($env:ODOO_CLAUDE_HOME)\node\node.exe")) { throw "expected the private node.exe to be used, got $($entry.command)" }
+    $msixCfg = Join-Path $msixRoaming 'Claude\claude_desktop_config.json'
+    if (-not (Test-Path $msixCfg)) { throw "config was not written to the MSIX (Microsoft Store build) location $msixCfg" }
+    $msixEntry = (Get-Content $msixCfg -Raw | ConvertFrom-Json).mcpServers.odoo
+    if ($msixEntry.command -ne $entry.command -or $msixEntry.args[0] -ne $entry.args[0]) { throw 'MSIX config differs from the classic one' }
+    Write-Host "  MSIX-location config ok: $msixCfg"
 
     # The registered command must work exactly as Claude Desktop would run it (config file only, no env vars).
     Remove-Item Env:ODOO_URL, Env:ODOO_LOGIN, Env:ODOO_PASSWORD, Env:ODOO_DB -ErrorAction SilentlyContinue
@@ -70,6 +80,8 @@ try {
     if (Test-Path $env:ODOO_CLAUDE_HOME) { throw 'uninstall did not remove the app folder' }
     $desktop2 = Get-Content (Join-Path $env:APPDATA 'Claude\claude_desktop_config.json') -Raw | ConvertFrom-Json
     if ($desktop2.mcpServers.odoo) { throw 'uninstall did not remove the Claude Desktop entry' }
+    $msix2 = Get-Content $msixCfg -Raw | ConvertFrom-Json
+    if ($msix2.mcpServers.odoo) { throw 'uninstall did not remove the MSIX-location entry' }
     Write-Host "  uninstall ok"
     Write-Host "INSTALLER SMOKE TEST PASSED" -ForegroundColor Green
 } catch {
@@ -78,7 +90,7 @@ try {
     Write-Host $_.ScriptStackTrace
 } finally {
     foreach ($k in $saved.Keys) { [Environment]::SetEnvironmentVariable($k, $saved[$k], 'Process') }
-    Remove-Item Env:ODOO_CLAUDE_UNINSTALL, Env:ODOO_CONFIG_FILE -ErrorAction SilentlyContinue
+    Remove-Item Env:ODOO_CLAUDE_UNINSTALL, Env:ODOO_CONFIG_FILE, Env:ODOO_SETUP_SKIP_APPX -ErrorAction SilentlyContinue
     Stop-Process -Id $mock.Id -Force -ErrorAction SilentlyContinue
     Stop-Process -Id $repo.Id -Force -ErrorAction SilentlyContinue
     Remove-Item -Recurse -Force $testHome -ErrorAction SilentlyContinue

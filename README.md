@@ -115,6 +115,15 @@ again; or Settings -> Extensions -> Odoo -> Uninstall for the extension.
 Releasing a new version: bump `version` in `package.json`, `npm run build`, commit, push, then
 `gh release create vX.Y.Z odoo.mcpb --notes-file notes.md`.
 
+## Windows note (Microsoft Store / MSIX build of Claude Desktop)
+
+The current Windows build of Claude Desktop is an MSIX package (`Claude_pzs8sxrjxfjjc`). It keeps its
+configuration in a virtualised AppData folder, `%LOCALAPPDATA%\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming\Claude\`,
+not in the documented `%APPDATA%\Claude\`. The installer (`server/setup.js`) detects the package and writes
+`claude_desktop_config.json` to both places, and launches the app through its Start menu entry. That build also
+registers no `.mcpb` file association, so the guide tells Windows users to install the extension through
+*Settings -> Extensions -> Advanced settings -> Install Extension...* (or drag and drop) rather than by double-click.
+
 ## Security notes
 
 - Credentials never leave the user's computer except to their own Odoo server over HTTPS.
