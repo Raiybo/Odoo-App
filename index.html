@@ -173,18 +173,24 @@
         <strong>Download the Odoo extension.</strong>
         <div class="btnrow">
           <a class="btn" id="dl-ext" href="odoo.mcpb" download="odoo.mcpb">Download the Odoo extension</a>
-          <span class="note" id="dl-size">(a 33 KB file called odoo.mcpb)</span>
+          <span class="note" id="dl-size">(a small file called odoo.mcpb, saved in your Downloads folder)</span>
         </div>
         <p class="status" id="dl-status" aria-live="polite"></p>
       </li>
       <li>
-        <strong>Open the file you just downloaded.</strong>
-        <p class="note"><span class="os mac">Click the download in Safari or Chrome, or open <strong>Finder &rarr; Downloads</strong> and double-click <strong>odoo.mcpb</strong>.</span><span class="os win">Click the download in your browser, or open <strong>File Explorer &rarr; Downloads</strong> and double-click <strong>odoo.mcpb</strong>.</span> Claude Desktop comes to the front and shows an <strong>Install extension</strong> window for "Odoo".</p>
-        <p class="note">Nothing happened? In Claude open <strong>Settings &rarr; Extensions &rarr; Advanced settings &rarr; Install Extension...</strong> and pick the odoo.mcpb file from your Downloads folder.</p>
+        <strong>Add the file to Claude.</strong>
+        <div class="os mac">
+          <p class="note">Open <strong>Finder &rarr; Downloads</strong> and double-click <strong>odoo.mcpb</strong> (or drag it onto the Claude window). Claude comes to the front and asks <em>"Install Extension? Do you want to install Odoo?"</em>.</p>
+          <p class="note">Nothing happened? In Claude press <kbd>&#8984;</kbd> <kbd>,</kbd> to open Settings, then <strong>Extensions &rarr; Advanced settings &rarr; Install Extension...</strong> and choose odoo.mcpb from your Downloads folder.</p>
+        </div>
+        <div class="os win">
+          <p class="note">In Claude press <kbd>Ctrl</kbd> <kbd>,</kbd> to open Settings, then go to <strong>Extensions &rarr; Advanced settings &rarr; Install Extension...</strong> and choose <strong>odoo.mcpb</strong> from your Downloads folder. Claude asks <em>"Install Extension? Do you want to install Odoo?"</em>.</p>
+          <p class="note">Do not double-click the file in Downloads: on Windows the Claude app is not registered for .mcpb files, so Windows would ask which program to use.</p>
+        </div>
       </li>
       <li>
         <strong>Click Install.</strong>
-        <p class="note">If Claude says the extension is <em>unsigned</em>, click <strong>Install anyway</strong>. That is expected: this extension is published by your own team, not through Anthropic's store, and its <a href="https://github.com/Raiybo/Odoo-App" target="_blank" rel="noopener">source code is public</a>.</p>
+        <p class="note">Claude installs the extension and immediately shows its settings form (Step 3). If instead Claude says <em>"This extension isn't signed. Ask your administrator to allow it or install a signed version."</em>, your company's Claude settings only allow signed extensions: ask your Claude administrator to allow it or to roll it out to everyone (see <a href="#admins">For team admins</a>), or use the automatic installer below, which does not go through the extension system.</p>
       </li>
     </ol>
     <details>
@@ -205,7 +211,7 @@
   <!-- ====================================================== STEP 3 -->
   <section class="card" id="step3" data-step="3">
     <h2><span class="num">3</span>Enter your Odoo login</h2>
-    <p class="sub">Right after installing, Claude shows a short form (later you find it under <strong>Settings &rarr; Extensions &rarr; Odoo &rarr; Configure</strong>). Fill it in like this and click <strong>Save</strong>.</p>
+    <p class="sub">Right after installing, Claude shows a short form (later you find it under <strong>Settings &rarr; Extensions &rarr; Odoo</strong>). Fill it in like this and click <strong>Save</strong>.</p>
     <div class="form">
       <div class="field"><b>Odoo address</b><span><span id="field-url-known" hidden>Already filled in: <code data-odoo-url></code> <button type="button" class="copy-small" data-copy-odoo>Copy</button></span><span id="field-url-unknown">The address of your Odoo login page, for example <code>https://mycompany.odoo.com</code>. Open Odoo in your browser and copy what is in the address bar up to and including <code>.com</code> (or your company's domain).</span></span></div>
       <div class="field"><b>Email (your Odoo login)</b><span>The email you type on the Odoo login page.</span></div>
@@ -227,7 +233,7 @@
         <li>Give it a name like <em>Claude</em>, choose the longest duration offered, and click <strong>Generate key</strong>.</li>
         <li>Copy the key right away (Odoo shows it only once) and paste it into the <strong>Password or API key</strong> field in Claude. Keep using your email as the login.</li>
       </ol>
-      <p class="note">When a key expires, make a new one the same way and update it in Claude under Settings &rarr; Extensions &rarr; Odoo &rarr; Configure.</p>
+      <p class="note">When a key expires, make a new one the same way and update it in Claude under Settings &rarr; Extensions &rarr; Odoo.</p>
     </details>
     <label class="done"><input type="checkbox" class="done-box" data-step="3"> Done: my Odoo login is saved in Claude</label>
   </section>
@@ -289,12 +295,12 @@
   <section class="card" id="help">
     <h2>Something not working?</h2>
     <details open>
-      <summary>Nothing happens when I open odoo.mcpb</summary>
-      <p>Make sure Claude Desktop (Step 1) is installed and you are signed in, then try again. Still nothing? In Claude open <strong>Settings &rarr; Extensions &rarr; Advanced settings &rarr; Install Extension...</strong> and choose the odoo.mcpb file in your Downloads folder. If Claude is very old, update it first (Claude menu &rarr; Check for updates).</p>
+      <summary>Nothing happens when I open odoo.mcpb, or Windows asks which program to use</summary>
+      <p>Use Claude's own menu instead: make sure Claude Desktop (Step 1) is installed and you are signed in, press <kbd>&#8984;</kbd> <kbd>,</kbd> (Mac) or <kbd>Ctrl</kbd> <kbd>,</kbd> (Windows) to open Settings, then <strong>Extensions &rarr; Advanced settings &rarr; Install Extension...</strong> and choose the odoo.mcpb file in your Downloads folder. If Claude is very old, update it first (Settings &rarr; check for updates).</p>
     </details>
     <details>
-      <summary>"This extension is unsigned"</summary>
-      <p>Expected. Click <strong>Install anyway</strong>. The extension comes from your own team, not from Anthropic's store. Everything it does is open source: <a href="https://github.com/Raiybo/Odoo-App" target="_blank" rel="noopener">github.com/Raiybo/Odoo-App</a>.</p>
+      <summary>"This extension isn't signed. Ask your administrator to allow it..."</summary>
+      <p>Your company's Claude administrator has switched on <em>Require signed extensions</em>. Two ways forward: ask the administrator to allow this extension or to upload it for the whole team (see <a href="#admins">For team admins</a>), or use the automatic installer from Step 2, which registers the connector directly and does not use the extension system. The extension comes from your own team, not from Anthropic's store; everything it does is open source: <a href="https://github.com/Raiybo/Odoo-App" target="_blank" rel="noopener">github.com/Raiybo/Odoo-App</a>.</p>
     </details>
     <details>
       <summary>"Login failed" or "needs an API key"</summary>
@@ -302,11 +308,11 @@
     </details>
     <details>
       <summary>"Could not determine which database to use" or "database not found"</summary>
-      <p>Rare. The database name is usually the first part of your Odoo address (<code>mycompany</code> for <code>mycompany.odoo.com</code>). On Odoo.sh it is shown in your Odoo.sh project. Otherwise ask whoever manages your Odoo. Put it in the <strong>Database</strong> field (Settings &rarr; Extensions &rarr; Odoo &rarr; Configure).</p>
+      <p>Rare. The database name is usually the first part of your Odoo address (<code>mycompany</code> for <code>mycompany.odoo.com</code>). On Odoo.sh it is shown in your Odoo.sh project. Otherwise ask whoever manages your Odoo. Put it in the <strong>Database</strong> field (Settings &rarr; Extensions &rarr; Odoo).</p>
     </details>
     <details>
       <summary>Claude does not seem to know about Odoo</summary>
-      <p>Fully quit Claude Desktop and open it again, then start a <strong>new chat</strong>. Check <strong>Settings &rarr; Extensions</strong>: "Odoo" must be listed and switched on. In the chat, the tools button (the sliders icon next to the message box) should list Odoo. If you used the automatic installer instead, look under <strong>Settings &rarr; Developer</strong> for a server named "odoo".</p>
+      <p>Fully quit Claude Desktop and open it again, then start a <strong>new chat</strong>. Check <strong>Settings &rarr; Extensions</strong>: "Odoo" must be listed and switched on. In the chat, the tools button (the sliders icon next to the message box) should list Odoo. If you used the automatic installer instead, look under <strong>Settings &rarr; Developer</strong> for a local server named "odoo"; on Windows the installer writes the configuration to both places Claude may read it from (the classic <code>%APPDATA%\Claude</code> folder and the Microsoft Store style <code>Packages\Claude_...\LocalCache\Roaming\Claude</code> folder), so re-running the installer fixes a hand-edited configuration.</p>
     </details>
     <details>
       <summary>My company's Claude does not allow installing extensions</summary>
@@ -345,7 +351,7 @@
     </details>
     <details>
       <summary>Roll out to everyone at once (Claude Team / Enterprise)</summary>
-      <p>In the Claude admin console you can upload <a href="odoo.mcpb" download="odoo.mcpb">odoo.mcpb</a> as a custom desktop extension and enable it for your organization; teammates then only enter their own Odoo login. For unattended installs on managed computers, set <code>ODOO_URL</code>, <code>ODOO_LOGIN</code>, <code>ODOO_PASSWORD</code> and <code>ODOO_CLAUDE_NO_LAUNCH=1</code> in the environment before running the installer script; it then asks no questions and exits non-zero if the login does not work.</p>
+      <p>In the Claude admin console you can upload <a href="odoo.mcpb" download="odoo.mcpb">odoo.mcpb</a> as a custom desktop extension and enable it for your organization; teammates then only enter their own Odoo login, and the <em>Require signed extensions</em> policy does not get in the way. For unattended installs on managed computers, set <code>ODOO_URL</code>, <code>ODOO_LOGIN</code>, <code>ODOO_PASSWORD</code> and <code>ODOO_CLAUDE_NO_LAUNCH=1</code> in the environment before running the installer script; it then asks no questions and exits non-zero if the login does not work.</p>
     </details>
     <details>
       <summary>What this actually does (for IT and security)</summary>

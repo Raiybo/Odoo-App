@@ -101,7 +101,7 @@ function missingConfigMessage(cfg) {
   if (!cfg.login) missing.push('login email (ODOO_LOGIN)');
   if (!cfg.password) missing.push('password or API key (ODOO_PASSWORD)');
   return `The Odoo connection is not configured yet. Missing: ${missing.join(', ')}. ` +
-    `Open Claude Desktop > Settings > Extensions > Odoo > Configure (or re-run the Odoo App installer) and fill these in.`;
+    `Open Claude Desktop > Settings > Extensions > Odoo (or re-run the Odoo App installer) and fill these in.`;
 }
 
 // ---------------------------------------------------------------------------
@@ -567,7 +567,7 @@ class OdooClient {
   guardReadOnly(method) {
     if (!this.cfg.readOnly) return;
     if (isReadMethod(method)) return;
-    throw new OdooError(`This Odoo connection is in read-only mode, so "${method}" is not allowed. Turn off "Read-only mode" in the Odoo extension settings (or set ODOO_READ_ONLY=false) to allow changes.`, 'readonly');
+    throw new OdooError(`This Odoo connection is in read-only mode, so "${method}" is not allowed. Turn off "Read-only mode" in Claude > Settings > Extensions > Odoo (or set ODOO_READ_ONLY=false) to allow changes.`, 'readonly');
   }
 
   async execute(model, method, args, kwargs) {
