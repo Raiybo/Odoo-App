@@ -52,7 +52,7 @@ case "$(uname -s)" in
   *) DESKTOP_CFG="$XDG_CONFIG_HOME/Claude/claude_desktop_config.json" ;;
 esac
 [ -f "$ODOO_CLAUDE_HOME/config.json" ] || { echo "config.json missing"; exit 1; }
-PERMS=$(stat -f '%Lp' "$ODOO_CLAUDE_HOME/config.json" 2>/dev/null || stat -c '%a' "$ODOO_CLAUDE_HOME/config.json")
+if [ "$(uname -s)" = "Darwin" ]; then PERMS=$(stat -f '%Lp' "$ODOO_CLAUDE_HOME/config.json"); else PERMS=$(stat -c '%a' "$ODOO_CLAUDE_HOME/config.json"); fi
 [ "$PERMS" = "600" ] || { echo "config.json permissions are $PERMS, expected 600"; exit 1; }
 echo "  config.json ok (mode $PERMS)"
 [ -f "$DESKTOP_CFG" ] || { echo "claude_desktop_config.json missing at $DESKTOP_CFG"; exit 1; }
