@@ -29,9 +29,11 @@ const browser = findBrowser();
 if (!browser) { console.log('No Chromium-based browser found; skipping browser smoke test.'); process.exit(0); }
 console.log(`browser: ${browser}`);
 
+// BASE_URL=https://raiybo.github.io/Odoo-App/ tests the deployed site instead of a local copy.
 const server = spawn(process.execPath, [path.join(root, 'tests', 'serve-repo.mjs')], { env: { ...process.env, WATCH_STDIN: '1' }, stdio: ['pipe', 'pipe', 'inherit'] });
 const port = await new Promise((resolve) => { let b = ''; server.stdout.on('data', (d) => { b += d; const i = b.indexOf('\n'); if (i >= 0) resolve(JSON.parse(b.slice(0, i)).port); }); });
-const base = `http://127.0.0.1:${port}/`;
+const base = process.env.BASE_URL ? process.env.BASE_URL.replace(/\/?$/, '/') : `http://127.0.0.1:${port}/`;
+console.log(`testing ${base}`);
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'odoo-app-browser-'));
 
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36';
