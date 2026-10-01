@@ -33,7 +33,7 @@ const os = require('os');
 const path = require('path');
 
 const SERVER_NAME = 'odoo';
-const SERVER_VERSION = '1.0.0';
+const SERVER_VERSION = '1.1.0';
 const DEFAULT_PROTOCOL_VERSION = '2025-06-18';
 const MAX_OUTPUT_CHARS = 60000;
 

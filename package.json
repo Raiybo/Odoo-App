@@ -1,6 +1,6 @@
 {
   "name": "odoo-app",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Odoo App - connect Claude to Odoo in one click (Claude Desktop extension + installers for Mac and Windows).",
   "private": true,
   "license": "MIT",
