@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: Tests (${{ matrix.os }}, Node ${{ matrix.node }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest, node: 18 }
+          - { os: ubuntu-latest, node: 20 }
+          - { os: ubuntu-latest, node: 22 }
+          - { os: macos-latest, node: 22 }
+          - { os: windows-latest, node: 22 }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Offline end-to-end tests (fake Odoo, several versions and failure modes)
+        run: node tests/run.mjs
+      - name: Build the extension bundle
+        run: node scripts/build-mcpb.mjs
+        env:
+          MCPB_VERIFY: "0"
+      - name: Check install.sh syntax
+        if: runner.os != 'Windows'
+        run: bash -n install.sh
+      - name: Check install.ps1 syntax (Windows PowerShell 5.1 and PowerShell 7)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $errs = $null
+          [System.Management.Automation.Language.Parser]::ParseFile("$PWD\install.ps1", [ref]$null, [ref]$errs) | Out-Null
+          if ($errs) { $errs | ForEach-Object { Write-Error $_.Message }; exit 1 }
+          pwsh -NoProfile -Command "[scriptblock]::Create((Get-Content install.ps1 -Raw)) | Out-Null"
+
+  installer-mac-linux:
+    name: Installer smoke test (${{ matrix.os }}, ${{ matrix.mode }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+        mode: ["", "--download-node"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: bash tests/installer-smoke.sh ${{ matrix.mode }}
+
+  installer-windows:
+    name: Installer smoke test (windows, ${{ matrix.mode }})
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: ["", "-DownloadNode"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - shell: powershell
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File tests\installer-smoke.ps1 ${{ matrix.mode }}
+
+  live-demo:
+    name: Live smoke test against demo.odoo.com
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node tests/live-demo.mjs

@@ -1,0 +1,21 @@
+{
+  "name": "odoo-app",
+  "version": "1.0.0",
+  "description": "Odoo App - connect Claude to Odoo in one click (Claude Desktop extension + installers for Mac and Windows).",
+  "private": true,
+  "license": "MIT",
+  "homepage": "https://raiybo.github.io/Odoo-App/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Raiybo/Odoo-App.git"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node tests/run.mjs",
+    "test:live": "node tests/live-demo.mjs",
+    "build": "node scripts/build-mcpb.mjs",
+    "check": "node server/index.js --test"
+  }
+}

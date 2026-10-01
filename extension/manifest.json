@@ -1,0 +1,88 @@
+{
+  "manifest_version": "0.3",
+  "name": "odoo",
+  "display_name": "Odoo",
+  "version": "1.0.0",
+  "description": "Connect Claude to your Odoo: search, read and update customers, sales, invoices, products, stock, projects and more.",
+  "long_description": "Lets Claude work inside your company's Odoo.\n\nAsk things like \"show me this month's overdue invoices\", \"which quotations are waiting for Azure Interior?\", \"how much did we sell per salesperson in Q3?\" or \"create a lead for Acme and schedule a call\".\n\nClaude uses your own Odoo login, so it can only see and do what you can. Turn on **Read-only mode** if you want Claude to look but never change anything.\n\nWorks with Odoo Online, Odoo.sh and self-hosted Odoo (version 13 and newer, Community or Enterprise). The connection method is chosen automatically for your Odoo version.",
+  "author": {
+    "name": "Raiybo",
+    "url": "https://github.com/Raiybo"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Raiybo/Odoo-App"
+  },
+  "homepage": "https://raiybo.github.io/Odoo-App/",
+  "documentation": "https://github.com/Raiybo/Odoo-App#readme",
+  "support": "https://github.com/Raiybo/Odoo-App/issues",
+  "icon": "icon.png",
+  "server": {
+    "type": "node",
+    "entry_point": "server/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/server/index.js"],
+      "env": {
+        "ODOO_URL": "${user_config.odoo_url}",
+        "ODOO_LOGIN": "${user_config.odoo_login}",
+        "ODOO_PASSWORD": "${user_config.odoo_password}",
+        "ODOO_DB": "${user_config.odoo_db}",
+        "ODOO_READ_ONLY": "${user_config.read_only}",
+        "ODOO_INSECURE_SSL": "${user_config.insecure_ssl}"
+      }
+    }
+  },
+  "tools": [],
+  "tools_generated": false,
+  "keywords": ["odoo", "erp", "crm", "sales", "invoicing", "accounting", "inventory", "projects"],
+  "license": "MIT",
+  "compatibility": {
+    "claude_desktop": ">=0.10.0",
+    "platforms": ["darwin", "win32", "linux"],
+    "runtimes": {
+      "node": ">=18.0.0"
+    }
+  },
+  "user_config": {
+    "odoo_url": {
+      "type": "string",
+      "title": "Odoo address",
+      "description": "The web address where you log into Odoo, for example https://mycompany.odoo.com",
+      "required": true
+    },
+    "odoo_login": {
+      "type": "string",
+      "title": "Email (your Odoo login)",
+      "description": "The email address you use to sign in to Odoo.",
+      "required": true
+    },
+    "odoo_password": {
+      "type": "string",
+      "title": "Password or API key",
+      "description": "Your Odoo password. If you use two-factor authentication or sign in with Google/Microsoft, create an API key in Odoo instead (click your name > Preferences > Account Security > New API Key) and paste it here.",
+      "sensitive": true,
+      "required": true
+    },
+    "odoo_db": {
+      "type": "string",
+      "title": "Database (optional)",
+      "description": "Leave empty: it is detected automatically. Only fill it in if 'Check my Odoo connection' asks for it.",
+      "required": false
+    },
+    "read_only": {
+      "type": "boolean",
+      "title": "Read-only mode",
+      "description": "When on, Claude can look at Odoo data but can never create, change or delete anything.",
+      "required": false,
+      "default": false
+    },
+    "insecure_ssl": {
+      "type": "boolean",
+      "title": "Accept self-signed certificates",
+      "description": "Only for internal Odoo servers that use a self-signed SSL certificate.",
+      "required": false,
+      "default": false
+    }
+  }
+}

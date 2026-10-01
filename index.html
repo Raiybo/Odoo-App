@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Odoo App</title>
+<meta name="description" content="Connect Claude to your Odoo in two minutes. Pick Mac or Windows, download the extension or paste one command, enter your Odoo login, done.">
+<link rel="icon" type="image/png" href="icon.png">
+<style>
+  :root {
+    --bg: #f6f4f7;
+    --surface: #ffffff;
+    --surface-2: #f1edf0;
+    --text: #1f1a1e;
+    --muted: #6b5f68;
+    --line: #e2dbe0;
+    --accent: #714b67;
+    --accent-ink: #ffffff;
+    --accent-soft: #efe6ec;
+    --ok: #1f7a4d;
+    --warn: #9a6700;
+    --code-bg: #27202a;
+    --code-ink: #f4eef2;
+    --radius: 14px;
+    --shadow: 0 1px 2px rgba(31, 26, 30, .06), 0 8px 24px rgba(31, 26, 30, .06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #17131a; --surface: #211c24; --surface-2: #2a2430; --text: #f1ebf0; --muted: #a79fa6; --line: #352e3a;
+      --accent: #b58aa9; --accent-ink: #1b1420; --accent-soft: #332838; --ok: #5cc48e; --warn: #e0b24a; --code-bg: #0f0c11; --code-ink: #efe8ee;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #17131a; --surface: #211c24; --surface-2: #2a2430; --text: #f1ebf0; --muted: #a79fa6; --line: #352e3a;
+    --accent: #b58aa9; --accent-ink: #1b1420; --accent-soft: #332838; --ok: #5cc48e; --warn: #e0b24a; --code-bg: #0f0c11; --code-ink: #efe8ee;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  a { color: var(--accent); }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; }
+  header { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; }
+  header img { width: 52px; height: 52px; border-radius: 12px; }
+  h1 { font-size: 28px; margin: 0; letter-spacing: -.01em; }
+  .tagline { margin: 0 0 24px; color: var(--muted); font-size: 17px; }
+  .seg { display: inline-flex; background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px; padding: 4px; gap: 4px; }
+  .seg button { border: 0; background: transparent; color: var(--muted); font: inherit; font-weight: 600; padding: 8px 18px; border-radius: 999px; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+  .seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .detected { color: var(--muted); font-size: 14px; margin: 8px 0 20px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 22px 22px 18px; margin: 0 0 18px; }
+  .card h2 { font-size: 19px; margin: 0 0 4px; }
+  .card .sub { color: var(--muted); margin: 0 0 14px; font-size: 15px; }
+  .badge { display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--accent); background: var(--accent-soft); border-radius: 6px; padding: 2px 8px; margin-bottom: 10px; }
+  ol.steps { margin: 0; padding: 0; list-style: none; counter-reset: s; }
+  ol.steps li { position: relative; padding: 10px 0 10px 44px; border-top: 1px solid var(--line); counter-increment: s; }
+  ol.steps li:first-child { border-top: 0; }
+  ol.steps li::before { content: counter(s); position: absolute; left: 0; top: 10px; width: 28px; height: 28px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-weight: 700; display: grid; place-items: center; font-size: 14px; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; background: var(--accent); color: var(--accent-ink); text-decoration: none; font-weight: 700; padding: 11px 18px; border-radius: 10px; border: 0; font: inherit; cursor: pointer; }
+  .btn:hover { filter: brightness(1.05); }
+  .btn.secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--line); }
+  .cmd { display: flex; align-items: stretch; background: var(--code-bg); color: var(--code-ink); border-radius: 10px; overflow: hidden; margin: 8px 0 4px; }
+  .cmd code { flex: 1; padding: 12px 14px; font: 13.5px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; word-break: break-all; }
+  .cmd button { border: 0; border-left: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.06); color: var(--code-ink); font: inherit; font-weight: 600; padding: 0 14px; cursor: pointer; min-width: 74px; }
+  .cmd button:hover { background: rgba(255,255,255,.12); }
+  .ask { display: inline-flex; align-items: center; gap: 10px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 8px 8px 8px 14px; margin-top: 6px; }
+  .ask code { font: 15px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .ask button { border: 1px solid var(--line); background: var(--surface); color: var(--text); font: inherit; font-size: 14px; padding: 6px 10px; border-radius: 8px; cursor: pointer; }
+  .note { color: var(--muted); font-size: 14px; margin: 6px 0 0; }
+  .hidden { display: none !important; }
+  details { border-top: 1px solid var(--line); padding: 10px 0; }
+  details:first-of-type { border-top: 0; }
+  summary { cursor: pointer; font-weight: 600; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: "+"; color: var(--muted); font-size: 20px; line-height: 1; }
+  details[open] summary::after { content: "\2212"; }
+  details p, details ul { color: var(--text); font-size: 15px; margin: 8px 0 0; }
+  details ul { padding-left: 18px; }
+  .examples { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0; padding: 0; list-style: none; }
+  .examples li { background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font-size: 14.5px; }
+  @media (max-width: 560px) { .examples { grid-template-columns: 1fr; } .card { padding: 18px 16px 14px; } h1 { font-size: 24px; } }
+  footer { color: var(--muted); font-size: 14px; margin-top: 28px; }
+  kbd { font: 13px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--surface-2); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 6px; padding: 1px 6px; }
+  .ok { color: var(--ok); font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img src="icon.png" alt="" width="52" height="52">
+    <h1>Odoo App</h1>
+  </header>
+  <p class="tagline">Connect Claude to your Odoo in about two minutes. Then just ask Claude about your customers, sales, invoices, stock and more.</p>
+
+  <div class="seg" role="group" aria-label="Choose your computer">
+    <button type="button" id="pick-mac" aria-pressed="true">Mac</button>
+    <button type="button" id="pick-win" aria-pressed="false">Windows</button>
+  </div>
+  <p class="detected" id="detected"></p>
+
+  <!-- ============================ MAC ============================ -->
+  <section id="panel-mac">
+    <div class="card">
+      <span class="badge">Easiest</span>
+      <h2>One-click extension for Claude Desktop</h2>
+      <p class="sub">No terminal. Download, double-click, type your Odoo login.</p>
+      <ol class="steps">
+        <li>Make sure <a href="https://claude.ai/download" target="_blank" rel="noopener">Claude Desktop</a> is installed and you are signed in. Already have it? Skip ahead.</li>
+        <li>
+          <a class="btn" href="odoo.mcpb" download="odoo.mcpb">Download the Odoo extension</a>
+          <p class="note">Then open the downloaded <strong>odoo.mcpb</strong> file (double-click it in your Downloads folder). Claude opens and shows the extension. Click <strong>Install</strong>. If it says the extension is unsigned, choose <strong>Install anyway</strong>.</p>
+        </li>
+        <li>Fill in your <strong>Odoo address</strong> (for example <code>https://mycompany.odoo.com</code>), the <strong>email</strong> you log into Odoo with, and your <strong>Odoo password</strong>. Leave "Database" empty. Click <strong>Save</strong>.</li>
+        <li>Start a new chat and ask:
+          <div class="ask"><code>Check my Odoo connection</code><button type="button" data-copy="Check my Odoo connection">Copy</button></div>
+          <p class="note">Claude replies with your Odoo version, company and user name. <span class="ok">That is it.</span> From now on ask Claude anything about your Odoo data.</p>
+        </li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <span class="badge">Alternative</span>
+      <h2>Automatic installer (Terminal)</h2>
+      <p class="sub">Also connects <strong>Claude Code</strong>, and verifies your login before finishing. Good for people who do not use Claude Desktop extensions.</p>
+      <ol class="steps">
+        <li>Open <strong>Terminal</strong>: press <kbd>&#8984;</kbd> <kbd>space</kbd>, type <em>Terminal</em>, press <kbd>return</kbd>.</li>
+        <li>Paste this line and press <kbd>return</kbd>:
+          <div class="cmd"><code id="cmd-mac">/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Raiybo/Odoo-App/main/install.sh)"</code><button type="button" data-copy-target="cmd-mac">Copy</button></div>
+          <p class="note">It downloads what it needs (nothing else on your Mac changes), asks for your Odoo address, email and password, checks that they work, connects Claude Desktop and Claude Code, and restarts Claude Desktop.</p>
+        </li>
+        <li>Open Claude and ask <code>Check my Odoo connection</code>.</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ========================== WINDOWS ========================== -->
+  <section id="panel-win" class="hidden">
+    <div class="card">
+      <span class="badge">Easiest</span>
+      <h2>One-click extension for Claude Desktop</h2>
+      <p class="sub">No command line. Download, double-click, type your Odoo login.</p>
+      <ol class="steps">
+        <li>Make sure <a href="https://claude.ai/download" target="_blank" rel="noopener">Claude Desktop</a> is installed and you are signed in. Already have it? Skip ahead.</li>
+        <li>
+          <a class="btn" href="odoo.mcpb" download="odoo.mcpb">Download the Odoo extension</a>
+          <p class="note">Then open the downloaded <strong>odoo.mcpb</strong> file (double-click it in your Downloads folder). Claude opens and shows the extension. Click <strong>Install</strong>. If it says the extension is unsigned, choose <strong>Install anyway</strong>.</p>
+        </li>
+        <li>Fill in your <strong>Odoo address</strong> (for example <code>https://mycompany.odoo.com</code>), the <strong>email</strong> you log into Odoo with, and your <strong>Odoo password</strong>. Leave "Database" empty. Click <strong>Save</strong>.</li>
+        <li>Start a new chat and ask:
+          <div class="ask"><code>Check my Odoo connection</code><button type="button" data-copy="Check my Odoo connection">Copy</button></div>
+          <p class="note">Claude replies with your Odoo version, company and user name. <span class="ok">That is it.</span> From now on ask Claude anything about your Odoo data.</p>
+        </li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <span class="badge">Alternative</span>
+      <h2>Automatic installer (PowerShell)</h2>
+      <p class="sub">Also connects <strong>Claude Code</strong>, and verifies your login before finishing. Good for people who do not use Claude Desktop extensions.</p>
+      <ol class="steps">
+        <li>Open <strong>PowerShell</strong>: press the <kbd>Windows</kbd> key, type <em>PowerShell</em>, press <kbd>Enter</kbd>. (No administrator rights needed.)</li>
+        <li>Paste this line and press <kbd>Enter</kbd>:
+          <div class="cmd"><code id="cmd-win">irm https://raw.githubusercontent.com/Raiybo/Odoo-App/main/install.ps1 | iex</code><button type="button" data-copy-target="cmd-win">Copy</button></div>
+          <p class="note">It downloads what it needs (nothing else on your PC changes), asks for your Odoo address, email and password, checks that they work, connects Claude Desktop and Claude Code, and restarts Claude Desktop.</p>
+        </li>
+        <li>Open Claude and ask <code>Check my Odoo connection</code>.</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ========================== COMMON =========================== -->
+  <div class="card">
+    <h2>What can I ask Claude once it is connected?</h2>
+    <p class="sub">Claude sees exactly what you can see in Odoo, nothing more. A few ideas:</p>
+    <ul class="examples">
+      <li>"Which invoices are overdue, and by how much in total?"</li>
+      <li>"Show me the open quotations for Azure Interior."</li>
+      <li>"How much did each salesperson sell this quarter?"</li>
+      <li>"Which products are below their minimum stock?"</li>
+      <li>"Create a lead for Acme Corp, contact Jane Doe, worth 12,000."</li>
+      <li>"Add a note to sales order S00042 saying the delivery is delayed."</li>
+      <li>"Give me a link to the customer record for Deco Addict."</li>
+      <li>"Explain what fields a sales order has."</li>
+    </ul>
+    <p class="note">Claude asks for your confirmation before it creates, changes or deletes anything. Prefer a strict look-but-don't-touch mode? Turn on <strong>Read-only mode</strong> in the extension settings.</p>
+  </div>
+
+  <div class="card">
+    <h2>Something not working?</h2>
+    <details>
+      <summary>"Login failed" or "needs an API key"</summary>
+      <p>Use the same email and password you type on the Odoo login page. If your account uses <strong>two-factor authentication</strong> or you sign in with <strong>Google / Microsoft</strong>, Odoo does not accept a password from other apps. Create an API key instead: in Odoo click your name (top right) &rarr; <em>Preferences</em> &rarr; <em>Account Security</em> &rarr; <em>New API Key</em>. Paste that key in place of the password.</p>
+    </details>
+    <details>
+      <summary>"Could not determine which database to use"</summary>
+      <p>Rare. The database name is usually the first part of your Odoo address (<code>mycompany</code> for <code>mycompany.odoo.com</code>). On Odoo.sh it is shown in your project. Otherwise ask whoever manages your Odoo. Put it in the <em>Database</em> field of the extension (or in the installer when it asks).</p>
+    </details>
+    <details>
+      <summary>Claude does not seem to know about Odoo</summary>
+      <p>Fully quit Claude Desktop and open it again. Then check <em>Settings &rarr; Extensions</em>: "Odoo" should be listed and switched on. In a new chat, the tools menu (the sliders icon) should show Odoo. If you used the Terminal/PowerShell installer, check <em>Settings &rarr; Developer</em> for a server named "odoo".</p>
+    </details>
+    <details>
+      <summary>"This extension is unsigned"</summary>
+      <p>Expected: the extension is published by your own team, not through Anthropic's directory. Choose <strong>Install anyway</strong>. Everything it does is open source in the repository linked below.</p>
+    </details>
+    <details>
+      <summary>Where are my Odoo password and settings stored?</summary>
+      <p>On your computer only. The extension stores the password in your operating system's keychain (Claude Desktop handles that). The installer stores it in a private file that only your user account can read (<code>~/.odoo-claude/config.json</code> on Mac, <code>%LOCALAPPDATA%\OdooClaude\config.json</code> on Windows). Nothing is sent anywhere except directly to your Odoo server.</p>
+    </details>
+    <details>
+      <summary>How do I remove it?</summary>
+      <p>Extension: <em>Settings &rarr; Extensions &rarr; Odoo &rarr; Uninstall</em>. Installer: run the same command again with <code>-- --uninstall</code> at the end (Mac), or on Windows run <code>$env:ODOO_CLAUDE_UNINSTALL='1'</code> first and then the install command.</p>
+    </details>
+    <details>
+      <summary>For IT: what does this actually do?</summary>
+      <ul>
+        <li>Runs a small local program (open source, no dependencies) that talks to Odoo over HTTPS using the user's own login, through Odoo's standard web API. The connection method is picked automatically (web session, JSON-2 API with an API key on Odoo 19+, or classic JSON-RPC), so it works on Odoo Online, Odoo.sh and self-hosted, version 13 and newer.</li>
+        <li>The user's Odoo access rights apply unchanged. Read-only mode can be forced with <code>ODOO_READ_ONLY=true</code>.</li>
+        <li>Unattended install: set <code>ODOO_URL</code>, <code>ODOO_LOGIN</code>, <code>ODOO_PASSWORD</code> (and <code>ODOO_CLAUDE_NO_LAUNCH=1</code>) before running the installer.</li>
+        <li>Team and Enterprise admins can also upload <code>odoo.mcpb</code> once in the Claude admin console so everyone gets it automatically.</li>
+      </ul>
+    </details>
+  </div>
+
+  <footer>
+    Source code, issues and updates: <a href="https://github.com/Raiybo/Odoo-App" target="_blank" rel="noopener">github.com/Raiybo/Odoo-App</a>.
+    Works with Claude Desktop and Claude Code on macOS and Windows.
+  </footer>
+</div>
+
+<script>
+(function () {
+  var macBtn = document.getElementById('pick-mac');
+  var winBtn = document.getElementById('pick-win');
+  var detected = document.getElementById('detected');
+
+  function detect() {
+    var p = '';
+    try { p = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || ''; } catch (e) {}
+    var ua = navigator.userAgent || '';
+    if (/win/i.test(p) || /Windows/i.test(ua)) return 'win';
+    if (/mac/i.test(p) || /Macintosh/i.test(ua)) return 'mac';
+    return null;
+  }
+  function show(os, manual) {
+    var isMac = os !== 'win';
+    document.getElementById('panel-mac').classList.toggle('hidden', !isMac);
+    document.getElementById('panel-win').classList.toggle('hidden', isMac);
+    macBtn.setAttribute('aria-pressed', String(isMac));
+    winBtn.setAttribute('aria-pressed', String(!isMac));
+    if (manual) { try { localStorage.setItem('odoo-app-os', os); } catch (e) {} }
+  }
+  var saved = null;
+  try { saved = localStorage.getItem('odoo-app-os'); } catch (e) {}
+  var auto = detect();
+  var initial = saved || auto || 'mac';
+  show(initial, false);
+  if (auto) detected.textContent = 'We think you are on ' + (auto === 'win' ? 'Windows' : 'a Mac') + '. Wrong? Click the other one.';
+  else detected.textContent = 'Pick the kind of computer you are using.';
+  macBtn.addEventListener('click', function () { show('mac', true); });
+  winBtn.addEventListener('click', function () { show('win', true); });
+
+  function copyText(text, btn) {
+    var done = function () { var old = btn.textContent; btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = old; }, 1600); };
+    if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(done, function () { fallback(text, done); }); }
+    else fallback(text, done);
+  }
+  function fallback(text, done) {
+    var ta = document.createElement('textarea'); ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta); done();
+  }
+  var buttons = document.querySelectorAll('button[data-copy], button[data-copy-target]');
+  for (var i = 0; i < buttons.length; i++) {
+    buttons[i].addEventListener('click', function (ev) {
+      var b = ev.currentTarget;
+      var text = b.getAttribute('data-copy') || document.getElementById(b.getAttribute('data-copy-target')).textContent;
+      copyText(text, b);
+    });
+  }
+})();
+</script>
+</body>
+</html>
