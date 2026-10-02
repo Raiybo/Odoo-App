@@ -1,6 +1,6 @@
 {
   "name": "odoo-app",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Odoo App - connect Claude to Odoo in one click (Claude Desktop extension + installers for Mac and Windows).",
   "private": true,
   "license": "MIT",
@@ -16,6 +16,7 @@
     "test": "node tests/run.mjs && node tests/bundle-builder.test.mjs && node tests/extension-host.test.mjs",
     "test:browser": "node tests/browser-smoke.mjs",
     "test:live": "node tests/live-demo.mjs",
+    "test:e2e": "node tests/live-e2e.mjs",
     "build": "node scripts/build-mcpb.mjs",
     "site": "node scripts/build-site.mjs",
     "deploy": "node scripts/build-mcpb.mjs && node scripts/build-site.mjs && npx -y netlify-cli deploy --prod --dir build/site --site odoo-app --no-build",

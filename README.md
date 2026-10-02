@@ -92,6 +92,7 @@ tests/                     offline end-to-end tests (fake Odoo), installer smoke
 npm test             # offline end-to-end tests against the built-in fake Odoo + the in-browser bundle builder + the extension launched the way Claude Desktop does
 npm run test:browser # landing page and bundle builder in a real headless browser (Edge/Chrome); ONLINE=1 also checks Anthropic's download links
 npm run test:live    # smoke test against Odoo's public demo server (needs internet)
+npm run test:e2e     # sample person (email + password) on a real Odoo, through the extension, a team link and the installer, all taken from the live site
 npm run build        # rebuild bundle/, odoo.mcpb and icon.png
 node server/index.js --test   # check a connection using ODOO_URL / ODOO_LOGIN / ODOO_PASSWORD env vars
 ```

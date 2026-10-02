@@ -33,7 +33,7 @@ const os = require('os');
 const path = require('path');
 
 const SERVER_NAME = 'odoo';
-const SERVER_VERSION = '1.2.0';
+const SERVER_VERSION = '1.2.1';
 const DEFAULT_PROTOCOL_VERSION = '2025-06-18';
 const MAX_OUTPUT_CHARS = 60000;
 
@@ -428,15 +428,19 @@ class OdooClient {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'text/html' },
       body: form.toString(),
     });
-    // 200 = login form shown again: this single-database server refused the email/password (an API key is refused here too)
-    if (r2.status === 200) throw new OdooError('login refused', 'auth');
-    if (![302, 303].includes(r2.status)) return null;
     const loc = r2.headers.get('location') || '';
-    if (/totp|mfa|2fa/i.test(loc)) {
+    if ([302, 303].includes(r2.status) && /totp|mfa|2fa/i.test(loc)) {
       throw new OdooError('two-factor authentication is enabled for this account', 'mfa');
     }
-    const info = await this.jsonRpc('/web/session/get_session_info', {});
-    if (!info || !info.db || !info.uid) return null;
+    // A successful login answers with a redirect (Odoo 15+) or with a small page that redirects by script
+    // (Odoo 14 and older). Either way the session is logged in now, so ask it who and where we are.
+    let info = null;
+    try { info = await this.jsonRpc('/web/session/get_session_info', {}); } catch (e) { if (e.kind === 'network') throw e; }
+    if (!info || !info.db || !info.uid) {
+      // Login form shown again: this single-database server refused the email/password (an API key is refused here too)
+      if (r2.status === 200 && /name="password"|oe_login_form/.test(r2.text)) throw new OdooError('login refused', 'auth');
+      return null;
+    }
     this.adopt({ transport: 'web', db: info.db, uid: info.uid, name: info.name, login: info.username, companyName: companyNameFromSession(info), serverVersion: info.server_version });
     this.ready = true;
     return info.db;

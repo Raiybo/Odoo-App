@@ -224,6 +224,19 @@ scenario('odoo16 with database list: db from the list, read_group fallback, lega
   } finally { await mcp.close(); mock.stop(); }
 });
 
+scenario('odoo14 monodb password: login page answers with a script redirect, database still detected', async () => {
+  const mock = await startMock({ MOCK_VERSION: '14.0', MOCK_MONODB: '1', MOCK_LIST_DB: '0', MOCK_DBS: 'old-erp' });
+  const t = await runTestMode({ ODOO_URL: mock.url, ODOO_LOGIN: LOGIN, ODOO_PASSWORD: PASSWORD });
+  const bad = await runTestMode({ ODOO_URL: mock.url, ODOO_LOGIN: LOGIN, ODOO_PASSWORD: 'typo' });
+  mock.stop();
+  assert.equal(t.code, 0, t.out + t.err);
+  assert.equal(t.json.database, 'old-erp');
+  assert.equal(t.json.database_source, 'auto-detected (login)');
+  assert.equal(t.json.odoo_version, '14.0');
+  assert.equal(bad.code, 5, bad.out + bad.err);
+  assert.match(bad.json.message, /rejected the login/);
+});
+
 scenario('odoo19 api key: web login refused, JSON-2 transport with keyword arguments', async () => {
   const mock = await startMock({ MOCK_VERSION: '19.0+e', MOCK_MONODB: '1', MOCK_LIST_DB: '0', MOCK_DBS: 'prod19', MOCK_LEGACY: '0' });
   const mcp = new McpClient({ ODOO_URL: mock.url, ODOO_DB: 'prod19', ODOO_LOGIN: LOGIN, ODOO_PASSWORD: API_KEY });

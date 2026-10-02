@@ -351,7 +351,12 @@ async function handle(req, res) {
     const s = sid && sessions.get(sid);
     if (!s || form.get('csrf_token') !== s.csrf) return sendHtml(res, 400, '<html><body>Invalid CSRF token</body></html>');
     const c = checkCredentials(form.get('login'), form.get('password'));
-    if (c === 'ok') { s.uid = 2; s.pre = false; s.db = DBS[0]; res.writeHead(303, { Location: form.get('redirect') || '/web' }); return res.end(); }
+    if (c === 'ok') {
+      s.uid = 2; s.pre = false; s.db = DBS[0];
+      // Odoo 14 and older answer a successful login with a page that redirects by script, not with an HTTP redirect.
+      if (major <= 14) return sendHtml(res, 200, `<html><head><script>window.location = '${form.get('redirect') || '/web'}' + location.hash;</script></head></html>`);
+      res.writeHead(303, { Location: form.get('redirect') || '/web' }); return res.end();
+    }
     if (c === 'mfa') { res.writeHead(303, { Location: '/web/login/totp' }); return res.end(); }
     return sendHtml(res, 200, '<!DOCTYPE html><html><body><form class="oe_login_form"><input type="hidden" name="csrf_token" value="' + s.csrf + '"/><p class="alert alert-danger">Wrong login/password</p></form></body></html>');
   }

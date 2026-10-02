@@ -98,6 +98,21 @@ jobs:
         shell: powershell
         run: powershell -NoProfile -ExecutionPolicy Bypass -File tests\installer-smoke.ps1 -Site https://odoo-app.netlify.app
 
+  live-e2e:
+    name: Sample person on a real Odoo, from the live site (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    continue-on-error: true   # depends on Odoo's public demo server being up
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node tests/live-e2e.mjs
+
   live-demo:
     name: Live smoke test against demo.odoo.com
     runs-on: ubuntu-latest
