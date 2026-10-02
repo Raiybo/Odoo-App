@@ -91,8 +91,8 @@ function baseEnv() {
   return { ...process.env, ODOO_CONFIG_FILE: path.join(here, 'no-such-config.json'), ODOO_URL: '', ODOO_DB: '', ODOO_LOGIN: '', ODOO_PASSWORD: '', ODOO_READ_ONLY: '', ODOO_API_KEY: '', ODOO_INSECURE_SSL: '' };
 }
 
-async function runTestMode(env) {
-  const child = spawn(process.execPath, [SERVER, '--test', '--json'], { env: { ...baseEnv(), ...env }, stdio: ['ignore', 'pipe', 'pipe'] });
+async function runTestMode(env, nodeArgs) {
+  const child = spawn(process.execPath, [...(nodeArgs || []), SERVER, '--test', '--json'], { env: { ...baseEnv(), ...env }, stdio: ['ignore', 'pipe', 'pipe'] });
   let out = '', err = '';
   child.stdout.on('data', (d) => { out += d; });
   child.stderr.on('data', (d) => { err += d; });
@@ -308,6 +308,31 @@ scenario('wrong password: all transports tried, helpful message, exit code 5', a
   assert.match(t.json.tried, /web: login refused.*json2: not accepted as an API key.*jsonrpc: login refused/);
 });
 
+scenario('wrong password without a database name: still reported as a login problem, not a database problem', async () => {
+  // The usual case: only address, email and password are filled in, and the password has a typo.
+  for (const version of ['17.0', '19.0+e']) {
+    const mock = await startMock({ MOCK_VERSION: version, MOCK_MONODB: '1', MOCK_LIST_DB: '0', MOCK_DBS: 'hidden-name' });
+    const t = await runTestMode({ ODOO_URL: mock.url, ODOO_LOGIN: LOGIN, ODOO_PASSWORD: 'typo' });
+    mock.stop();
+    assert.equal(t.code, 5, `Odoo ${version}: ${t.out}${t.err}`);
+    assert.equal(t.json.kind, 'auth');
+    assert.match(t.json.message, /rejected the login for "jane@example\.com"\. Check the email and password/);
+  }
+});
+
+scenario('API key without a database name on Odoo 17: asks for the database name, then works with it', async () => {
+  const key = '0123456789abcdef0123456789abcdef01234567'; // Odoo API keys are 40 hex characters
+  const mock = await startMock({ MOCK_VERSION: '17.0+e', MOCK_MONODB: '1', MOCK_LIST_DB: '0', MOCK_DBS: 'hidden-name', MOCK_API_KEY: key });
+  try {
+    const t = await runTestMode({ ODOO_URL: mock.url, ODOO_LOGIN: LOGIN, ODOO_PASSWORD: key });
+    assert.equal(t.code, 4, t.out + t.err);
+    assert.match(t.json.message, /Could not determine which Odoo database to use.*With an API key, this Odoo version needs the database name/);
+    const ok = await runTestMode({ ODOO_URL: mock.url, ODOO_DB: 'hidden-name', ODOO_LOGIN: LOGIN, ODOO_PASSWORD: key });
+    assert.equal(ok.code, 0, ok.out + ok.err);
+    assert.equal(ok.json.transport, 'JSON-RPC');
+  } finally { mock.stop(); }
+});
+
 scenario('two-factor authentication: explains that an API key is needed, exit code 6', async () => {
   const mock = await startMock({ MOCK_VERSION: '18.0+e', MOCK_MONODB: '1', MOCK_LIST_DB: '0', MOCK_DBS: 'mfa-co', MOCK_MFA: '1' });
   const t = await runTestMode({ ODOO_URL: mock.url, ODOO_LOGIN: LOGIN, ODOO_PASSWORD: PASSWORD });
@@ -328,6 +353,34 @@ scenario('wrong database name: exit code 4 with the list of databases', async ()
   mock2.stop();
   assert.equal(t2.code, 0, 'with several listed databases the first one that accepts the login is used: ' + t2.out + t2.err);
   assert.equal(t2.json.database, 'alpha');
+});
+
+scenario('database name guessed from the address does not exist: asks for the Database field instead of listing transports', async () => {
+  // The first part of the host name is tried as the database name, so this needs a host name rather than an IP:
+  // the preload resolves *.odoo-app.test to the fake Odoo.
+  const named = ['--require', path.join(here, 'resolve-test-hosts.cjs')];
+  // Like demo.odoo.com: several databases, no list, and nothing works until a database is chosen.
+  const mock = await startMock({ MOCK_VERSION: '20.0+e', MOCK_MONODB: '0', MOCK_LIST_DB: '0', MOCK_JSON2: '0', MOCK_DBS: 'acme-main-1234' });
+  // A single-database Odoo 19 where the password is wrong: the guessed name must not show up in the message.
+  const mock2 = await startMock({ MOCK_VERSION: '19.0+e', MOCK_MONODB: '1', MOCK_LIST_DB: '0', MOCK_DBS: 'hidden-name' });
+  try {
+    const t = await runTestMode({ ODOO_URL: `http://acme.odoo-app.test:${mock.port}`, ODOO_LOGIN: LOGIN, ODOO_PASSWORD: PASSWORD }, named);
+    assert.equal(t.code, 4, t.out + t.err);
+    assert.equal(t.json.kind, 'db');
+    assert.match(t.json.message, /^Could not determine which Odoo database to use on acme\.odoo-app\.test:\d+ \(tried "acme", guessed from the address/);
+    assert.match(t.json.message, /"Database" field/);
+    assert.doesNotMatch(t.json.message, /Tried:|json2|JSON-2/);
+
+    const ok = await runTestMode({ ODOO_URL: `http://acme.odoo-app.test:${mock.port}`, ODOO_DB: 'acme-main-1234', ODOO_LOGIN: LOGIN, ODOO_PASSWORD: PASSWORD }, named);
+    assert.equal(ok.code, 0, ok.out + ok.err);
+    assert.equal(ok.json.database, 'acme-main-1234');
+
+    const t2 = await runTestMode({ ODOO_URL: `http://acme.odoo-app.test:${mock2.port}`, ODOO_LOGIN: LOGIN, ODOO_PASSWORD: 'wrong' }, named);
+    assert.equal(t2.code, 5, t2.out + t2.err);
+    assert.match(t2.json.message, /rejected the login for "jane@example\.com"\. Check the email and password/);
+  } finally {
+    mock.stop(); mock2.stop();
+  }
 });
 
 scenario('address without scheme and with a path, plus a redirect to another port, are handled', async () => {

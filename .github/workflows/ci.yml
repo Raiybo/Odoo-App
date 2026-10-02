@@ -31,6 +31,8 @@ jobs:
           MCPB_VERIFY: "0"
       - name: In-browser extension builder (Node + official mcpb CLI check)
         run: node tests/bundle-builder.test.mjs
+      - name: Extension launched the way Claude Desktop does (settings form to MCP session)
+        run: node tests/extension-host.test.mjs
       - name: Landing page in a real headless browser
         if: runner.os != 'macOS'
         run: node tests/browser-smoke.mjs

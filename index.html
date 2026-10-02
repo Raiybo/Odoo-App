@@ -305,10 +305,11 @@
     <details>
       <summary>"Login failed" or "needs an API key"</summary>
       <p>Use the exact email and password you type on the Odoo login page. If you sign into Odoo with <strong>Google or Microsoft</strong>, or Odoo asks you for a <strong>two-factor code</strong>, your password cannot be used by other apps: create an API key as described in Step 3 and paste it in place of the password.</p>
+      <p>Password certainly right, but it contains a <strong>$</strong> sign? Extension settings can alter a <code>$</code> that is followed by <code>$</code>, <code>&amp;</code>, <code>'</code> or <code>`</code>. Use an API key instead (Step 3), or the automatic installer from Step 2, which is not affected.</p>
     </details>
     <details>
       <summary>"Could not determine which database to use" or "database not found"</summary>
-      <p>Rare. The database name is usually the first part of your Odoo address (<code>mycompany</code> for <code>mycompany.odoo.com</code>). On Odoo.sh it is shown in your Odoo.sh project. Otherwise ask whoever manages your Odoo. Put it in the <strong>Database</strong> field (Settings &rarr; Extensions &rarr; Odoo).</p>
+      <p>Rare: it happens when one server hosts several Odoo databases. The database name is usually the first part of your Odoo address (<code>mycompany</code> for <code>mycompany.odoo.com</code>). On Odoo.sh it is shown in your Odoo.sh project. Otherwise ask whoever manages your Odoo. Put it in the <strong>Database</strong> field (Settings &rarr; Extensions &rarr; Odoo), or answer the installer's database question with it.</p>
     </details>
     <details>
       <summary>Claude does not seem to know about Odoo</summary>

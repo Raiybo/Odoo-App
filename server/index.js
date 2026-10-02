@@ -33,7 +33,7 @@ const os = require('os');
 const path = require('path');
 
 const SERVER_NAME = 'odoo';
-const SERVER_VERSION = '1.1.0';
+const SERVER_VERSION = '1.1.1';
 const DEFAULT_PROTOCOL_VERSION = '2025-06-18';
 const MAX_OUTPUT_CHARS = 60000;
 
@@ -394,6 +394,7 @@ class OdooClient {
     } catch (e) {
       if (e.kind === 'network') throw e;
       if (e.kind === 'mfa') attempts.push({ db: '(auto)', transport: 'web', ok: false, reason: 'mfa', message: e.message });
+      if (e.kind === 'auth') attempts.push({ db: '(auto)', transport: 'web', ok: false, reason: 'denied', message: 'login refused' });
       debug(`web login discovery failed: ${e.message}`);
     }
 
@@ -427,7 +428,9 @@ class OdooClient {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'text/html' },
       body: form.toString(),
     });
-    if (![302, 303].includes(r2.status)) return null; // 200 = login form shown again (wrong credentials or API key)
+    // 200 = login form shown again: this single-database server refused the email/password (an API key is refused here too)
+    if (r2.status === 200) throw new OdooError('login refused', 'auth');
+    if (![302, 303].includes(r2.status)) return null;
     const loc = r2.headers.get('location') || '';
     if (/totp|mfa|2fa/i.test(loc)) {
       throw new OdooError('two-factor authentication is enabled for this account', 'mfa');
@@ -535,8 +538,16 @@ class OdooClient {
       'Then set it in the "Database" field of the Odoo extension (or ODOO_DB).';
 
     const anyMfa = attempts.some((a) => a.reason === 'mfa');
-    const anyDenied = attempts.some((a) => a.reason === 'denied');
-    const allNodb = attempts.length > 0 && attempts.every((a) => a.reason === 'nodb');
+    // Attempts against a database name (given, listed or guessed). Two attempts are made without one:
+    // "(auto)" is the login form of a single-database server, "(server default)" the JSON-2 fallback.
+    const named = attempts.filter((a) => a.db !== '(auto)' && a.db !== '(server default)');
+    const namedDenied = named.some((a) => a.reason === 'denied');
+    const noNameWorked = named.every((a) => a.reason === 'nodb');
+    const formDenied = attempts.some((a) => a.db === '(auto)' && a.reason === 'denied');
+    const fallbackDenied = attempts.some((a) => a.db === '(server default)' && a.reason === 'denied');
+    // The login form never accepts an API key (40 hex characters), so its refusal says nothing about a key.
+    const keyLike = /^[0-9a-f]{40}$/i.test(String(this.cfg.password || ''));
+    const loginRefused = namedDenied || fallbackDenied || (formDenied && !keyLike);
 
     if (anyMfa) {
       return new OdooError(
@@ -544,17 +555,25 @@ class OdooClient {
         'Create an API key instead: in Odoo click your name (top right) > Preferences > Account Security > New API Key, ' +
         'copy the key, and paste it in place of the password in the Odoo extension settings.', 'mfa', { tried });
     }
-    if (candidates.length === 0) {
-      const listNote = this.listedDbs && this.listedDbs.length > 1 ? ` This server hosts several databases: ${this.listedDbs.join(', ')}.` : '';
-      return new OdooError(`Could not determine which Odoo database to use on ${host}.${listNote} ${dbHint}`, 'db', { tried });
-    }
-    if (allNodb) {
+    if (noNameWorked && !loginRefused) {
+      if (candidates.length === 0) {
+        const listNote = this.listedDbs && this.listedDbs.length > 1 ? ` This server hosts several databases: ${this.listedDbs.join(', ')}.` : '';
+        const keyNote = keyLike && formDenied ? ' With an API key, this Odoo version needs the database name.' : '';
+        return new OdooError(`Could not determine which Odoo database to use on ${host}.${listNote}${keyNote} ${dbHint}`, 'db', { tried });
+      }
       const listNote = this.listedDbs && this.listedDbs.length ? ` Databases on this server: ${this.listedDbs.join(', ')}.` : '';
+      if (!this.cfg.db) {
+        // The name was only a guess from the address: do not tell the person to try the address again.
+        return new OdooError(
+          `Could not determine which Odoo database to use on ${host} (tried "${candidates.join('", "')}", guessed from the address, but it does not exist there).${listNote} ` +
+          'Ask your Odoo administrator for the database name (on Odoo.sh it is shown in your Odoo.sh project), ' +
+          'then set it in the "Database" field of the Odoo extension (or ODOO_DB).', 'db', { tried });
+      }
       return new OdooError(`The database "${candidates.join('", "')}" was not found on ${host}.${listNote} ${dbHint}`, 'db', { tried });
     }
-    if (anyDenied) {
+    if (loginRefused) {
       return new OdooError(
-        `Odoo at ${host} rejected the login for "${this.cfg.login}"${candidates.length === 1 ? ` on database "${candidates[0]}"` : ''}. ` +
+        `Odoo at ${host} rejected the login for "${this.cfg.login}"${candidates.length === 1 && namedDenied ? ` on database "${candidates[0]}"` : ''}. ` +
         'Check the email and password (they are the ones you use to log into Odoo in the browser). ' +
         'If you sign in with Google/Microsoft or use two-factor authentication, create an API key in Odoo ' +
         '(your name > Preferences > Account Security > New API Key) and use it instead of the password. ' +

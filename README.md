@@ -88,7 +88,7 @@ tests/                     offline end-to-end tests (fake Odoo), installer smoke
 ## Development
 
 ```bash
-npm test             # offline end-to-end tests against the built-in fake Odoo + the in-browser bundle builder
+npm test             # offline end-to-end tests against the built-in fake Odoo + the in-browser bundle builder + the extension launched the way Claude Desktop does
 npm run test:browser # landing page and bundle builder in a real headless browser (Edge/Chrome); ONLINE=1 also checks Anthropic's download links
 npm run test:live    # smoke test against Odoo's public demo server (needs internet)
 npm run build        # rebuild bundle/, odoo.mcpb and icon.png
