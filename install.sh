@@ -3,10 +3,10 @@
 # Connects Claude (Claude Desktop and Claude Code) to your Odoo.
 #
 # Run it with:
-#   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Raiybo/Odoo-App/main/install.sh)"
+#   /bin/bash -c "$(curl -fsSL https://odoo-app.netlify.app/install.sh)"
 #
 # Remove it with:
-#   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Raiybo/Odoo-App/main/install.sh)" -- --uninstall
+#   /bin/bash -c "$(curl -fsSL https://odoo-app.netlify.app/install.sh)" -- --uninstall
 #
 # Unattended use (for IT): set ODOO_URL, ODOO_LOGIN, ODOO_PASSWORD (and optionally ODOO_DB, ODOO_READ_ONLY=true)
 # in the environment before running; no questions are asked then.
@@ -20,7 +20,7 @@
 
 set -u
 
-BASE_URL="${ODOO_CLAUDE_BASE_URL:-https://raw.githubusercontent.com/Raiybo/Odoo-App/main}"
+BASE_URL="${ODOO_CLAUDE_BASE_URL:-https://odoo-app.netlify.app}"
 APP_DIR="${ODOO_CLAUDE_HOME:-$HOME/.odoo-claude}"
 NODE_SERIES="v22"
 READ_ONLY="${ODOO_READ_ONLY:-false}"
@@ -55,7 +55,7 @@ ask() {
 case "$(uname -s)" in
   Darwin) OS=darwin ;;
   Linux) OS=linux ;;
-  MINGW*|MSYS*|CYGWIN*) fail "This is the Mac/Linux installer. On Windows open PowerShell and run:  irm https://raw.githubusercontent.com/Raiybo/Odoo-App/main/install.ps1 | iex" ;;
+  MINGW*|MSYS*|CYGWIN*) fail "This is the Mac/Linux installer. On Windows open PowerShell and run:  irm https://odoo-app.netlify.app/install.ps1 | iex" ;;
   *) fail "Unsupported system: $(uname -s)" ;;
 esac
 command -v curl >/dev/null 2>&1 || fail "curl is required but was not found."

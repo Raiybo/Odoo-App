@@ -2,10 +2,10 @@
 # Connects Claude (Claude Desktop and Claude Code) to your Odoo.
 #
 # Run it in PowerShell with:
-#   irm https://raw.githubusercontent.com/Raiybo/Odoo-App/main/install.ps1 | iex
+#   irm https://odoo-app.netlify.app/install.ps1 | iex
 #
 # Remove it with:
-#   $env:ODOO_CLAUDE_UNINSTALL='1'; irm https://raw.githubusercontent.com/Raiybo/Odoo-App/main/install.ps1 | iex
+#   $env:ODOO_CLAUDE_UNINSTALL='1'; irm https://odoo-app.netlify.app/install.ps1 | iex
 #
 # Unattended use (for IT): set $env:ODOO_URL, $env:ODOO_LOGIN, $env:ODOO_PASSWORD (optionally $env:ODOO_DB,
 # $env:ODOO_READ_ONLY='true') before running; no questions are asked then.
@@ -22,7 +22,7 @@ function Install-OdooApp {
     $ProgressPreference = 'SilentlyContinue'
     try { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 } catch { }
 
-    $BaseUrl = if ($env:ODOO_CLAUDE_BASE_URL) { $env:ODOO_CLAUDE_BASE_URL } else { 'https://raw.githubusercontent.com/Raiybo/Odoo-App/main' }
+    $BaseUrl = if ($env:ODOO_CLAUDE_BASE_URL) { $env:ODOO_CLAUDE_BASE_URL } else { 'https://odoo-app.netlify.app' }
     $AppDir = if ($env:ODOO_CLAUDE_HOME) { $env:ODOO_CLAUDE_HOME } else { Join-Path $env:LOCALAPPDATA 'OdooClaude' }
     $NodeSeries = 'v22'
     $ReadOnly = if ($env:ODOO_READ_ONLY) { $env:ODOO_READ_ONLY } else { 'false' }

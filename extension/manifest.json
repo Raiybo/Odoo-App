@@ -7,15 +7,11 @@
   "long_description": "Lets Claude work inside your company's Odoo.\n\nAsk things like \"show me this month's overdue invoices\", \"which quotations are waiting for Azure Interior?\", \"how much did we sell per salesperson in Q3?\" or \"create a lead for Acme and schedule a call\".\n\nClaude uses your own Odoo login, so it can only see and do what you can. Turn on **Read-only mode** if you want Claude to look but never change anything.\n\nWorks with Odoo Online, Odoo.sh and self-hosted Odoo (version 13 and newer, Community or Enterprise). The connection method is chosen automatically for your Odoo version.",
   "author": {
     "name": "Raiybo",
-    "url": "https://github.com/Raiybo"
+    "url": "https://odoo-app.netlify.app/"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Raiybo/Odoo-App"
-  },
-  "homepage": "https://raiybo.github.io/Odoo-App/",
-  "documentation": "https://github.com/Raiybo/Odoo-App#readme",
-  "support": "https://github.com/Raiybo/Odoo-App/issues",
+  "homepage": "https://odoo-app.netlify.app/",
+  "documentation": "https://odoo-app.netlify.app/",
+  "support": "https://odoo-app.netlify.app/#help",
   "icon": "icon.png",
   "server": {
     "type": "node",

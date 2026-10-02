@@ -6,6 +6,10 @@
 <title>Odoo App</title>
 <meta name="description" content="Complete guide: from nothing installed to Claude connected to your company's Odoo. Sign in to Claude, install Claude Desktop, add the Odoo extension, enter your Odoo login, done.">
 <link rel="icon" type="image/png" href="icon.png">
+<script>
+  // The guide moved to its permanent address: links to the old one (team links included) are forwarded.
+  if (/\.github\.io$/i.test(location.hostname)) location.replace('https://odoo-app.netlify.app/' + location.search + location.hash);
+</script>
 <style>
   :root {
     --bg: #f6f4f7; --surface: #ffffff; --surface-2: #f1edf0; --text: #1f1a1e; --muted: #6b5f68; --line: #e2dbe0;
@@ -198,11 +202,11 @@
       <p>It downloads everything it needs, asks for your Odoo address, email and password, <strong>checks that they work</strong>, connects both Claude Desktop and Claude Code, and restarts Claude Desktop. Nothing else on your computer is changed. If you use it, Step 3 below is already done.</p>
       <div class="os mac">
         <p>Open <strong>Terminal</strong> (press <kbd>&#8984;</kbd> <kbd>space</kbd>, type <em>Terminal</em>, press <kbd>return</kbd>), paste this line, press <kbd>return</kbd>:</p>
-        <div class="cmd"><code id="cmd-mac">/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Raiybo/Odoo-App/main/install.sh)"</code><button type="button" data-copy-target="cmd-mac">Copy</button></div>
+        <div class="cmd"><code id="cmd-mac">/bin/bash -c "$(curl -fsSL https://odoo-app.netlify.app/install.sh)"</code><button type="button" data-copy-target="cmd-mac">Copy</button></div>
       </div>
       <div class="os win">
         <p>Open <strong>PowerShell</strong> (press the <kbd>Windows</kbd> key, type <em>PowerShell</em>, press <kbd>Enter</kbd>), paste this line, press <kbd>Enter</kbd>:</p>
-        <div class="cmd"><code id="cmd-win">irm https://raw.githubusercontent.com/Raiybo/Odoo-App/main/install.ps1 | iex</code><button type="button" data-copy-target="cmd-win">Copy</button></div>
+        <div class="cmd"><code id="cmd-win">irm https://odoo-app.netlify.app/install.ps1 | iex</code><button type="button" data-copy-target="cmd-win">Copy</button></div>
       </div>
     </details>
     <label class="done"><input type="checkbox" class="done-box" data-step="2"> Done: the Odoo extension is installed in Claude</label>
@@ -284,8 +288,8 @@
         <p class="note">Then open a new terminal window, run <code>claude</code> and follow the sign-in prompt. Details: <a href="https://code.claude.com/docs/en/overview" target="_blank" rel="noopener">Claude Code documentation</a>.</p>
       </li>
       <li><strong>Connect Odoo</strong> with the automatic installer (same command as in Step 2):
-        <div class="os mac"><div class="cmd"><code id="cmd-mac-2">/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Raiybo/Odoo-App/main/install.sh)"</code><button type="button" data-copy-target="cmd-mac-2">Copy</button></div></div>
-        <div class="os win"><div class="cmd"><code id="cmd-win-2">irm https://raw.githubusercontent.com/Raiybo/Odoo-App/main/install.ps1 | iex</code><button type="button" data-copy-target="cmd-win-2">Copy</button></div></div>
+        <div class="os mac"><div class="cmd"><code id="cmd-mac-2">/bin/bash -c "$(curl -fsSL https://odoo-app.netlify.app/install.sh)"</code><button type="button" data-copy-target="cmd-mac-2">Copy</button></div></div>
+        <div class="os win"><div class="cmd"><code id="cmd-win-2">irm https://odoo-app.netlify.app/install.ps1 | iex</code><button type="button" data-copy-target="cmd-win-2">Copy</button></div></div>
         <p class="note">In Claude Code, type <code>/mcp</code> to see the Odoo server listed, then ask "Check my Odoo connection".</p>
       </li>
     </ol>
@@ -300,7 +304,7 @@
     </details>
     <details>
       <summary>"This extension isn't signed. Ask your administrator to allow it..."</summary>
-      <p>Your company's Claude administrator has switched on <em>Require signed extensions</em>. Two ways forward: ask the administrator to allow this extension or to upload it for the whole team (see <a href="#admins">For team admins</a>), or use the automatic installer from Step 2, which registers the connector directly and does not use the extension system. The extension comes from your own team, not from Anthropic's store; everything it does is open source: <a href="https://github.com/Raiybo/Odoo-App" target="_blank" rel="noopener">github.com/Raiybo/Odoo-App</a>.</p>
+      <p>Your company's Claude administrator has switched on <em>Require signed extensions</em>. Two ways forward: ask the administrator to allow this extension or to upload it for the whole team (see <a href="#admins">For team admins</a>), or use the automatic installer from Step 2, which registers the connector directly and does not use the extension system. The extension comes from your own team, not from Anthropic's store; the whole program is one readable file that your IT can inspect: <a href="server/index.js" target="_blank" rel="noopener">server/index.js</a>.</p>
     </details>
     <details>
       <summary>"Login failed" or "needs an API key"</summary>
@@ -360,13 +364,12 @@
         <li>A small local program (open source, no third-party dependencies) talks to Odoo over HTTPS using the person's own Odoo login, through Odoo's standard web API. The method is picked automatically: web session, JSON-2 API with an API key (Odoo 19+), or classic JSON-RPC. Works with Odoo Online, Odoo.sh and self-hosted Odoo, version 13 and newer.</li>
         <li>The person's Odoo access rights apply unchanged. Read-only mode can be forced with <code>ODOO_READ_ONLY=true</code>.</li>
         <li>Credentials never leave the computer except to the Odoo server. The extension keeps them in the OS keychain; the installer in a user-only file.</li>
-        <li>Source, tests and release history: <a href="https://github.com/Raiybo/Odoo-App" target="_blank" rel="noopener">github.com/Raiybo/Odoo-App</a>.</li>
+        <li>The whole program is one readable file with no third-party code: <a href="server/index.js" target="_blank" rel="noopener">server/index.js</a>. The installers use it and <a href="server/setup.js" target="_blank" rel="noopener">server/setup.js</a>, nothing else.</li>
       </ul>
     </details>
   </section>
 
   <footer>
-    Source code and updates: <a href="https://github.com/Raiybo/Odoo-App" target="_blank" rel="noopener">github.com/Raiybo/Odoo-App</a>.
     Works with Claude Desktop and Claude Code on macOS and Windows.
   </footer>
 </div>
@@ -376,8 +379,9 @@
 (function () {
   var $ = function (id) { return document.getElementById(id); };
   var params = new URLSearchParams(location.search);
-  var INSTALL_SH = 'https://raw.githubusercontent.com/Raiybo/Odoo-App/main/install.sh';
-  var INSTALL_PS1 = 'https://raw.githubusercontent.com/Raiybo/Odoo-App/main/install.ps1';
+  var SITE = 'https://odoo-app.netlify.app';
+  var INSTALL_SH = SITE + '/install.sh';
+  var INSTALL_PS1 = SITE + '/install.ps1';
 
   // ---- operating system -------------------------------------------------
   function detectOS() {

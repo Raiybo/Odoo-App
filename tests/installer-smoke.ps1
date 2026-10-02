@@ -3,7 +3,9 @@
 #
 #   powershell -NoProfile -ExecutionPolicy Bypass -File tests\installer-smoke.ps1            (uses the node already on PATH)
 #   powershell -NoProfile -ExecutionPolicy Bypass -File tests\installer-smoke.ps1 -DownloadNode   (also exercises the Node.js download)
-param([switch]$DownloadNode)
+#   powershell -NoProfile -ExecutionPolicy Bypass -File tests\installer-smoke.ps1 -Site https://odoo-app.netlify.app
+#       (runs the installer exactly as a teammate does: fetched from the live site with irm, downloading from its default address)
+param([switch]$DownloadNode, [string]$Site)
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
@@ -31,7 +33,7 @@ try {
     New-Item -ItemType Directory -Force -Path $msixRoaming | Out-Null
     $env:ODOO_SETUP_SKIP_APPX = '1'   # do not query the real Get-AppxPackage on this machine
     $env:ODOO_CLAUDE_HOME = Join-Path $testHome 'app'
-    $env:ODOO_CLAUDE_BASE_URL = "http://127.0.0.1:$repoPort"
+    if ($Site) { Remove-Item Env:ODOO_CLAUDE_BASE_URL -ErrorAction SilentlyContinue } else { $env:ODOO_CLAUDE_BASE_URL = "http://127.0.0.1:$repoPort" }
     $env:ODOO_CLAUDE_NO_LAUNCH = '1'
     $env:ODOO_URL = "http://127.0.0.1:$mockPort"
     $env:ODOO_LOGIN = 'admin@example.com'
@@ -42,8 +44,10 @@ try {
         if (Get-Command node.exe -ErrorAction SilentlyContinue) { throw 'could not hide node.exe from PATH for the download test' }
     }
 
-    Write-Host "=== running install.ps1 unattended (DownloadNode=$DownloadNode) ===" -ForegroundColor Cyan
-    Invoke-Expression (Get-Content (Join-Path $root 'install.ps1') -Raw)
+    Write-Host "=== running install.ps1 unattended (DownloadNode=$DownloadNode, Site=$Site) ===" -ForegroundColor Cyan
+    $installer = if ($Site) { Invoke-RestMethod "$($Site.TrimEnd('/'))/install.ps1" } else { Get-Content (Join-Path $root 'install.ps1') -Raw }
+    if ($installer -isnot [string]) { throw "the installer did not arrive as text (got $($installer.GetType().Name))" }
+    Invoke-Expression $installer
 
     Write-Host "=== checking results ===" -ForegroundColor Cyan
     $cfg = Get-Content (Join-Path $env:ODOO_CLAUDE_HOME 'config.json') -Raw | ConvertFrom-Json

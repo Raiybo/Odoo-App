@@ -29,7 +29,7 @@ const browser = findBrowser();
 if (!browser) { console.log('No Chromium-based browser found; skipping browser smoke test.'); process.exit(0); }
 console.log(`browser: ${browser}`);
 
-// BASE_URL=https://raiybo.github.io/Odoo-App/ tests the deployed site instead of a local copy.
+// BASE_URL=https://odoo-app.netlify.app/ tests the deployed site instead of a local copy.
 const server = spawn(process.execPath, [path.join(root, 'tests', 'serve-repo.mjs')], { env: { ...process.env, WATCH_STDIN: '1' }, stdio: ['pipe', 'pipe', 'inherit'] });
 const port = await new Promise((resolve) => { let b = ''; server.stdout.on('data', (d) => { b += d; const i = b.indexOf('\n'); if (i >= 0) resolve(JSON.parse(b.slice(0, i)).port); }); });
 const base = process.env.BASE_URL ? process.env.BASE_URL.replace(/\/?$/, '/') : `http://127.0.0.1:${port}/`;
@@ -85,8 +85,9 @@ await check('landing page: Windows view without a team link shows generic instru
   const text = textOf(dom);
   assert.ok(/<html[^>]*data-os="win"/.test(dom), 'windows selected');
   assert.ok(/id="banner" hidden/.test(dom), 'no team banner');
-  assert.ok(dom.includes('<code id="cmd-win">irm https://raw.githubusercontent.com/Raiybo/Odoo-App/main/install.ps1 | iex</code>'), 'windows command without a pre-filled address');
-  assert.ok(dom.includes('<code id="cmd-mac">/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Raiybo/Odoo-App/main/install.sh)"</code>'), 'mac command without a pre-filled address');
+  assert.ok(dom.includes('<code id="cmd-win">irm https://odoo-app.netlify.app/install.ps1 | iex</code>'), 'windows command without a pre-filled address');
+  assert.ok(dom.includes('<code id="cmd-mac">/bin/bash -c "$(curl -fsSL https://odoo-app.netlify.app/install.sh)"</code>'), 'mac command without a pre-filled address');
+  assert.ok(!/github/i.test(text) && !/(href|src)="[^"]*github/i.test(dom), 'nothing a teammate sees or clicks mentions GitHub');
   assert.ok(text.includes('Check my Odoo connection'), 'test prompt shown');
   assert.ok(/We think you are on|Pick the kind of computer/.test(text), 'detection note rendered by JS');
   assert.ok(text.includes('Download the Odoo extension (a 33 KB file called odoo.mcpb)') || text.includes('Download the Odoo extension'), 'plain download button');

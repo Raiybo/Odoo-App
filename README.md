@@ -1,6 +1,6 @@
 # Odoo App - connect Claude to Odoo
 
-**Share this link with your team: https://raiybo.github.io/Odoo-App/**
+**Share this link with your team: https://odoo-app.netlify.app/**
 
 It is a complete guide from zero: sign in to Claude (or create an account), install the Claude Desktop app
 with direct download buttons for Mac or Windows, add the Odoo extension, enter the Odoo login, verify.
@@ -10,7 +10,7 @@ Ten minutes, no technical knowledge needed. The only things a person types are t
 **Team link:** open the page, scroll to *For team admins*, enter your company's Odoo address and click
 *Create team link*. Teammates who open that link see the address pre-filled everywhere, including inside the
 extension they download (the page builds a personalised `odoo.mcpb` in the browser). Example:
-`https://raiybo.github.io/Odoo-App/?odoo=https%3A%2F%2Fmycompany.odoo.com&company=My%20Company`
+`https://odoo-app.netlify.app/?odoo=https%3A%2F%2Fmycompany.odoo.com&company=My%20Company`
 
 ## Two ways to install the connector
 
@@ -22,13 +22,13 @@ extension they download (the page builds a personalised `odoo.mcpb` in the brows
 Mac:
 
 ```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Raiybo/Odoo-App/main/install.sh)"
+/bin/bash -c "$(curl -fsSL https://odoo-app.netlify.app/install.sh)"
 ```
 
 Windows (PowerShell, no admin rights needed):
 
 ```powershell
-irm https://raw.githubusercontent.com/Raiybo/Odoo-App/main/install.ps1 | iex
+irm https://odoo-app.netlify.app/install.ps1 | iex
 ```
 
 After either method, open Claude and ask **"Check my Odoo connection"**.
@@ -73,7 +73,7 @@ password (Odoo: your name -> Preferences -> Account Security -> New API Key). Th
 ## Repository layout
 
 ```
-index.html                 the guide, served at https://raiybo.github.io/Odoo-App/
+index.html                 the guide, served at https://odoo-app.netlify.app/
 assets/odoo-app-bundle.js  builds a personalised odoo.mcpb in the browser (team links)
 odoo.mcpb                  the one-click Claude Desktop extension (zip of bundle/)
 bundle/                    the unzipped extension: manifest.json, server/index.js, icon.png, package.json (built, committed, served)
@@ -82,6 +82,7 @@ server/index.js            the MCP server: Odoo client + tools, zero dependencie
 server/setup.js            helper for the installers: saves config, edits Claude's config files
 extension/manifest.json    the extension manifest template (MCPB 0.3); the build fills in version and tools
 scripts/build-mcpb.mjs     builds bundle/, odoo.mcpb and icon.png (no dependencies)
+scripts/build-site.mjs     assembles build/site, the exact set of files the public site serves
 tests/                     offline end-to-end tests (fake Odoo), installer smoke tests, browser tests, live demo test
 ```
 
@@ -112,8 +113,17 @@ web pages; `ODOO_CLAUDE_HOME` changes the install folder; `ODOO_CLAUDE_NODE` poi
 Uninstall: `--uninstall` (Mac) or `$env:ODOO_CLAUDE_UNINSTALL='1'` (Windows) before running the install command
 again; or Settings -> Extensions -> Odoo -> Uninstall for the extension.
 
-Releasing a new version: bump `version` in `package.json`, `npm run build`, commit, push, then
-`gh release create vX.Y.Z odoo.mcpb --notes-file notes.md`.
+Releasing a new version: bump `version` in `package.json` and `SERVER_VERSION` in `server/index.js`, run the
+tests, commit, push, then `npm run deploy`.
+
+## Hosting
+
+Everything a teammate touches is served from https://odoo-app.netlify.app/ (Netlify, site name `odoo-app`): the
+guide, `odoo.mcpb`, the installers and the two files the installers download. `npm run deploy` rebuilds the
+extension, assembles `build/site` and publishes it (needs `netlify login` once on the machine that deploys).
+Pushing to this repository does **not** update the site; only `npm run deploy` does. This repository only stores
+the source and runs the tests. The old address `raiybo.github.io/Odoo-App` forwards to the new one, team links
+included. Check the live site with `BASE_URL=https://odoo-app.netlify.app/ npm run test:browser`.
 
 ## Windows note (Microsoft Store / MSIX build of Claude Desktop)
 

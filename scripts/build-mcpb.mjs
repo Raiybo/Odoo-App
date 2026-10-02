@@ -16,7 +16,7 @@ import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-// bundle/ holds the exact, unzipped content of odoo.mcpb. It is committed and served by GitHub Pages so the
+// bundle/ holds the exact, unzipped content of odoo.mcpb. It is committed and served by the site so the
 // landing page can build a personalised copy of the extension in the browser (assets/odoo-app-bundle.js).
 const stage = path.join(root, 'bundle');
 const out = path.join(root, 'odoo.mcpb');
